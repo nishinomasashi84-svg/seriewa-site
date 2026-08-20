@@ -2,7 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 
 const repoRoot = path.resolve(process.env.SERIEWA_REPO_ROOT || process.cwd());
-const payload = JSON.parse(process.env.SERIEWA_BLOG_PAYLOAD || "{}");
+const rawPayload = JSON.parse(process.env.SERIEWA_BLOG_PAYLOAD || "{}");
+const payload = {
+  ...rawPayload,
+  ...(rawPayload.identity || {}),
+  ...(rawPayload.article || {}),
+  ...(rawPayload.listing || {}),
+  ...(rawPayload.cta || {}),
+};
 
 function fail(message) {
   throw new Error(message);
