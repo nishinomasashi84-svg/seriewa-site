@@ -1,6 +1,9 @@
 name: Validate ChatGPT blog tools
 
 on:
+  push:
+    branches:
+      - feat/chatgpt-existing-image-replace
   pull_request:
     paths:
       - '.github/workflows/publish-blog-from-chatgpt.yml'
