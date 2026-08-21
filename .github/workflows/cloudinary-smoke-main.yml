@@ -1,0 +1,68 @@
+name: Cloudinary smoke test on main
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.cloudinary-smoke/request-*.json'
+
+permissions:
+  contents: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Find request
+        shell: bash
+        run: |
+          request="$(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}" | grep '^\.cloudinary-smoke/request-.*\.json$' | head -n 1)"
+          test -n "$request"
+          id="$(basename "$request" .json | sed 's/^request-//')"
+          echo "REQUEST=$request" >> "$GITHUB_ENV"
+          echo "RESULT=.cloudinary-smoke/result-$id.json" >> "$GITHUB_ENV"
+
+      - name: Upload to Cloudinary and write result
+        shell: bash
+        env:
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_UPLOAD_PRESET: ${{ secrets.CLOUDINARY_UPLOAD_PRESET }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const { Blob } = require('buffer');
+          (async () => {
+            const req = JSON.parse(fs.readFileSync(process.env.REQUEST, 'utf8'));
+            const img = req.image;
+            const result = { ok: false };
+            try {
+              if (!process.env.CLOUDINARY_CLOUD_NAME) throw new Error('CLOUDINARY_CLOUD_NAME is missing');
+              if (!process.env.CLOUDINARY_UPLOAD_PRESET) throw new Error('CLOUDINARY_UPLOAD_PRESET is missing');
+              const bytes = Buffer.from(img.base64, 'base64');
+              const form = new FormData();
+              form.set('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET);
+              form.set('file', new Blob([bytes], { type: img.mime_type }), img.filename);
+              const r = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(process.env.CLOUDINARY_CLOUD_NAME)}/image/upload`, { method: 'POST', body: form });
+              const body = await r.json().catch(() => ({}));
+              if (!r.ok || !body.secure_url) throw new Error(body.error?.message || `HTTP ${r.status}`);
+              Object.assign(result, { ok: true, secure_url: body.secure_url, public_id: body.public_id, width: body.width, height: body.height, format: body.format, bytes: body.bytes });
+            } catch (e) {
+              result.error = String(e && e.message || e);
+            }
+            fs.mkdirSync('.cloudinary-smoke', { recursive: true });
+            fs.writeFileSync(process.env.RESULT, JSON.stringify(result, null, 2) + '\n');
+          })().catch(e => { console.error(e); process.exit(1); });
+          NODE
+
+      - name: Commit result
+        shell: bash
+        run: |
+          git config user.name "SERIE W Cloudinary Test"
+          git config user.email "250153830+nishinomasashi84-svg@users.noreply.github.com"
+          git add "$RESULT"
+          git commit -m "Record Cloudinary smoke test result"
+          git push origin HEAD:main
