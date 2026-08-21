@@ -99,12 +99,10 @@ jobs:
 
           git push origin HEAD:main
 
-      - name: Verify existing article image on seriew.com
-        if: github.event.action == 'update_seriewa_blog_image'
+      - name: Verify published article on seriew.com
         run: node scripts/verify-seriewa-blog-live.mjs
 
-      - name: Record verified update result
-        if: github.event.action == 'update_seriewa_blog_image'
+      - name: Record live-verified operation result
         shell: bash
         run: |
           set -euo pipefail
@@ -112,5 +110,5 @@ jobs:
           result="$SERIEWA_RESULT_DIR/$request_id.json"
           test -f "$result"
           git add -- "$result"
-          git commit -m "Record verified SERIE W blog update"
+          git commit -m "Record verified SERIE W blog operation"
           git push origin HEAD:main
