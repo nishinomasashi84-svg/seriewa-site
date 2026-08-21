@@ -284,6 +284,15 @@ button{font:inherit;}
 .blog-tags{display:flex;flex-wrap:wrap;gap:10px;}
 .blog-tags span{font-size:11px;color:var(--green2);background:rgba(19,132,71,.08);border-radius:999px;padding:5px 12px;}
 
+.blog-media-grid{
+  display:grid;grid-template-columns:1fr;gap:22px;padding:30px 0 0;
+}
+.blog-media{
+  margin:0;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;
+}
+.blog-media img{width:100%;height:auto;display:block;}
+.blog-media figcaption{padding:10px 14px;font-size:12px;line-height:1.6;opacity:.72;}
+
 .blog-body{padding:40px 0 70px;font-size:15px;line-height:2;}
 .blog-body p{margin-bottom:22px;}
 .blog-lead{font-size:17px;font-weight:700;margin-bottom:26px;}

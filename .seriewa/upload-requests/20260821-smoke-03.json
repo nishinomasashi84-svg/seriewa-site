@@ -1,0 +1,11 @@
+{
+  "page_title": "Cloudinary upload smoke test after secrets setup",
+  "image_sources": [
+    {
+      "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+      "mime_type": "image/png",
+      "filename": "seriewa-smoke-test-03.png",
+      "alt": "SERIE W Cloudinary接続テスト画像"
+    }
+  ]
+}

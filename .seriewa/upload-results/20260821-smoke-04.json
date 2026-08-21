@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "images": [
+    {
+      "secure_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/v1787321304/vdtzmqoki75ah4yo6h4x.png",
+      "public_id": "vdtzmqoki75ah4yo6h4x",
+      "width": 1,
+      "height": 1,
+      "format": "png",
+      "bytes": 68,
+      "alt": "SERIE W Cloudinary接続テスト画像",
+      "caption": ""
+    }
+  ]
+}
