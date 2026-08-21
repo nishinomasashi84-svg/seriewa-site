@@ -2,7 +2,7 @@ name: Publish SERIE W blog from ChatGPT
 
 on:
   repository_dispatch:
-    types: [publish_seriewa_blog]
+    types: [publish_seriewa_blog, update_seriewa_blog_image]
 
 permissions:
   contents: write
@@ -17,6 +17,8 @@ jobs:
     env:
       SERIEWA_BLOG_PAYLOAD: ${{ toJson(github.event.client_payload) }}
       SERIEWA_CLOUDINARY_RESULT_FILE: ${{ runner.temp }}/seriewa-cloudinary-images.json
+      SERIEWA_UPDATE_RESULT_FILE: ${{ runner.temp }}/seriewa-blog-update.json
+      SERIEWA_RESULT_DIR: .seriewa/blog-results
 
     steps:
       - name: Check out the current site
@@ -30,21 +32,85 @@ jobs:
           CLOUDINARY_UPLOAD_PRESET: ${{ secrets.CLOUDINARY_UPLOAD_PRESET }}
         run: node scripts/upload-images-to-cloudinary.mjs
 
-      - name: Generate the new article and indexes
+      - name: Generate a new article and indexes
+        if: github.event.action == 'publish_seriewa_blog'
         run: node scripts/publish-blog-from-chatgpt.mjs
 
+      - name: Replace an existing article image only
+        if: github.event.action == 'update_seriewa_blog_image'
+        run: node scripts/replace-blog-image-from-chatgpt.mjs
+
       - name: Validate generated files and Cloudinary URLs
+        shell: bash
         run: |
+          set -euo pipefail
           git diff --check
           test -n "$(git status --short)"
+
           if test -s "$SERIEWA_CLOUDINARY_RESULT_FILE"; then
             node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.env.SERIEWA_CLOUDINARY_RESULT_FILE));for(const i of r.images||[]){if(!/^https:\/\/res\.cloudinary\.com\//.test(i.secure_url))process.exit(1)}'
           fi
 
+          if test "${{ github.event.action }}" = "update_seriewa_blog_image"; then
+            target="$(node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.env.SERIEWA_UPDATE_RESULT_FILE));process.stdout.write(r.article_path)')"
+            case "$target" in
+              blog/*/index.html) ;;
+              *) echo "Unsafe target path: $target" >&2; exit 1 ;;
+            esac
+            if test "$target" = "blog/index.html" || test "$target" = "index.html" || test "$target" = "sitemap.xml"; then
+              echo "Image replacement may not modify an index or sitemap" >&2
+              exit 1
+            fi
+            changed="$(git diff --name-only)"
+            test "$changed" = "$target"
+          else
+            node <<'NODE'
+          const { execFileSync } = require('child_process');
+          const payload = JSON.parse(process.env.SERIEWA_BLOG_PAYLOAD || '{}');
+          const slug = payload.slug || payload.identity?.slug || payload.article?.slug;
+          if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(slug || ''))) throw new Error('Invalid slug for validation');
+          const allowed = new Set([
+            `blog/${slug}/index.html`,
+            'blog/index.html',
+            'index.html',
+            'sitemap.xml',
+          ]);
+          const changed = execFileSync('git', ['diff', '--name-only'], { encoding: 'utf8' }).trim().split(/\r?\n/).filter(Boolean);
+          const unexpected = changed.filter((name) => !allowed.has(name));
+          if (unexpected.length) throw new Error(`Unexpected files changed: ${unexpected.join(', ')}`);
+          NODE
+          fi
+
       - name: Publish to the main branch
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "SERIE W Blog Bot"
           git config user.email "250153830+nishinomasashi84-svg@users.noreply.github.com"
-          git add -- blog index.html sitemap.xml
-          git commit -m "Publish blog article from ChatGPT"
+
+          if test "${{ github.event.action }}" = "update_seriewa_blog_image"; then
+            target="$(node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.env.SERIEWA_UPDATE_RESULT_FILE));process.stdout.write(r.article_path)')"
+            git add -- "$target"
+            git commit -m "Replace SERIE W blog image from ChatGPT"
+          else
+            git add -- blog index.html sitemap.xml
+            git commit -m "Publish blog article from ChatGPT"
+          fi
+
+          git push origin HEAD:main
+
+      - name: Verify existing article image on seriew.com
+        if: github.event.action == 'update_seriewa_blog_image'
+        run: node scripts/verify-seriewa-blog-live.mjs
+
+      - name: Record verified update result
+        if: github.event.action == 'update_seriewa_blog_image'
+        shell: bash
+        run: |
+          set -euo pipefail
+          request_id="$(node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.env.SERIEWA_UPDATE_RESULT_FILE));process.stdout.write(r.request_id)')"
+          result="$SERIEWA_RESULT_DIR/$request_id.json"
+          test -f "$result"
+          git add -- "$result"
+          git commit -m "Record verified SERIE W blog update"
           git push origin HEAD:main
