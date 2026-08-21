@@ -10,6 +10,7 @@ const payload = {
   ...(rawPayload.listing || {}),
   ...(rawPayload.cta || {}),
 };
+const operationResultFile = process.env.SERIEWA_UPDATE_RESULT_FILE;
 
 function fail(message) {
   throw new Error(message);
@@ -284,4 +285,25 @@ write("blog/index.html", updatedBlogIndex);
 write("index.html", updatedHomepage);
 write("sitemap.xml", updatedSitemap);
 
-console.log(JSON.stringify({ slug, articleNumber, displayDate, articlePath: articleRelativePath }));
+const requestId = text(payload.request_id, "request_id", 80);
+if (!/^[A-Za-z0-9._-]+$/.test(requestId)) fail("request_id may contain only letters, numbers, dot, underscore, and hyphen");
+const primaryImage = articleImages[0] || null;
+const result = {
+  operation: "publish_article",
+  request_id: requestId,
+  slug,
+  article_path: articleRelativePath,
+  public_url: `https://seriew.com/blog/${slug}/`,
+  secure_url: primaryImage?.secureUrl || "",
+  body_image_url: primaryImage ? cloudinaryDeliveryUrl(primaryImage.secureUrl, "f_auto,q_auto,c_limit,w_1200") : "",
+  social_image_url: ogImage,
+  article_number: articleNumber,
+  display_date: displayDate,
+  status: "ready_to_publish",
+};
+
+if (operationResultFile) {
+  fs.mkdirSync(path.dirname(path.resolve(operationResultFile)), { recursive: true });
+  fs.writeFileSync(path.resolve(operationResultFile), JSON.stringify(result, null, 2) + "\n", "utf8");
+}
+console.log(JSON.stringify(result, null, 2));
