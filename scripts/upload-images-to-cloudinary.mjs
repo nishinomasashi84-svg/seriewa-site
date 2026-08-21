@@ -7,6 +7,31 @@ const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET?.trim();
 const outputFile = process.env.SERIEWA_CLOUDINARY_RESULT_FILE;
 const repoRoot = path.resolve(process.env.SERIEWA_REPO_ROOT || process.cwd());
 const payload = JSON.parse(process.env.SERIEWA_BLOG_PAYLOAD || "{}");
+const uploadedImages = Array.isArray(payload.cloudinary_images) ? payload.cloudinary_images : [];
+
+if (uploadedImages.length > 8) throw new Error("cloudinary_images must contain at most 8 images");
+
+function validateUploadedCloudinaryImage(item, index) {
+  if (!item || typeof item !== "object" || typeof item.secure_url !== "string") {
+    throw new Error(`cloudinary_images[${index}].secure_url is required`);
+  }
+  const url = new URL(item.secure_url);
+  if (url.protocol !== "https:" || url.hostname !== "res.cloudinary.com" || !url.pathname.includes("/image/upload/")) {
+    throw new Error(`cloudinary_images[${index}].secure_url must be a Cloudinary HTTPS image URL`);
+  }
+  return {
+    secure_url: url.toString(),
+    public_id: typeof item.public_id === "string" ? item.public_id : "",
+    width: Number.isFinite(item.width) ? item.width : undefined,
+    height: Number.isFinite(item.height) ? item.height : undefined,
+    format: typeof item.format === "string" ? item.format : "",
+    bytes: Number.isFinite(item.bytes) ? item.bytes : undefined,
+    alt: typeof item.alt === "string" ? item.alt : payload.image_alt || payload.article?.page_title || "",
+    caption: typeof item.caption === "string" ? item.caption : "",
+  };
+}
+
+const cloudinaryImages = uploadedImages.map(validateUploadedCloudinaryImage);
 
 const explicitImages = Array.isArray(payload.image_sources)
   ? payload.image_sources
@@ -32,6 +57,9 @@ const rawImages = explicitImages.length
     });
 
 if (rawImages.length > 8) throw new Error("image sources must contain at most 8 images");
+if (cloudinaryImages.length > 0 && rawImages.length > 0) {
+  throw new Error("Use either cloudinary_images or image sources, not both");
+}
 
 if (rawImages.length > 0) {
   if (!cloudName) throw new Error("CLOUDINARY_CLOUD_NAME is required");
@@ -172,7 +200,7 @@ async function uploadImage(item, index) {
   };
 }
 
-const images = [];
+const images = [...cloudinaryImages];
 for (let index = 0; index < rawImages.length; index += 1) {
   images.push(await uploadImage(rawImages[index], index));
 }
