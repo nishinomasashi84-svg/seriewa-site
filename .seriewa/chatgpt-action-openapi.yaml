@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: SERIE W Blog Publisher
   description: Trigger safe SERIE W blog publishing and existing-article image replacement workflows in GitHub Actions, then read the verified result.
-  version: 2.0.0
+  version: 2.1.0
 servers:
   - url: https://api.github.com
 paths:
@@ -170,8 +170,8 @@ paths:
   /repos/nishinomasashi84-svg/seriewa-site/contents/.seriewa/blog-results/{request_id}.json:
     get:
       operationId: getSeriewaBlogOperationResult
-      summary: Read a live-verified existing article image update result.
-      description: Call after dispatching update_seriewa_blog_image. A successful JSON result is written only after main is updated and the expected body, og:image, and twitter:image URLs are confirmed on seriew.com.
+      summary: Read a live-verified blog publish or image update result.
+      description: Call after either supported dispatch. A successful JSON result is written only after main is updated and the article plus expected body, og:image, and twitter:image URLs are confirmed on seriew.com.
       x-openai-isConsequential: false
       parameters:
         - name: request_id
