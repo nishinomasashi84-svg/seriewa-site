@@ -1,0 +1,12 @@
+{
+  "page_title": "Cloudinary upload smoke test",
+  "image_sources": [
+    {
+      "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Z5ZkAAAAASUVORK5CYII=",
+      "mime_type": "image/png",
+      "filename": "seriewa-smoke-test.png",
+      "alt": "SERIE W Cloudinary接続テスト画像",
+      "caption": "Cloudinary upload smoke test"
+    }
+  ]
+}
