@@ -1,0 +1,55 @@
+name: Cloudinary smoke test via issue
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  upload:
+    if: startsWith(github.event.issue.title, '[CLOUDINARY-SMOKE]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload image from issue payload
+        id: upload
+        shell: bash
+        env:
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_UPLOAD_PRESET: ${{ secrets.CLOUDINARY_UPLOAD_PRESET }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          node <<'NODE' > "$RUNNER_TEMP/result.json"
+          const { Blob } = require('buffer');
+          (async () => {
+            const result = { ok: false };
+            try {
+              if (!process.env.CLOUDINARY_CLOUD_NAME) throw new Error('CLOUDINARY_CLOUD_NAME is missing');
+              if (!process.env.CLOUDINARY_UPLOAD_PRESET) throw new Error('CLOUDINARY_UPLOAD_PRESET is missing');
+              const req = JSON.parse(process.env.ISSUE_BODY || '{}');
+              const img = req.image;
+              const bytes = Buffer.from(img.base64, 'base64');
+              const form = new FormData();
+              form.set('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET);
+              form.set('file', new Blob([bytes], { type: img.mime_type }), img.filename);
+              const r = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(process.env.CLOUDINARY_CLOUD_NAME)}/image/upload`, { method: 'POST', body: form });
+              const body = await r.json().catch(() => ({}));
+              if (!r.ok || !body.secure_url) throw new Error(body.error?.message || `HTTP ${r.status}`);
+              Object.assign(result, { ok: true, secure_url: body.secure_url, public_id: body.public_id, width: body.width, height: body.height, format: body.format, bytes: body.bytes });
+            } catch (e) {
+              result.error = String(e && e.message || e);
+            }
+            process.stdout.write(JSON.stringify(result));
+          })().catch(e => { console.error(e); process.exit(1); });
+          NODE
+
+      - name: Comment result
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          result="$(cat "$RUNNER_TEMP/result.json")"
+          gh issue comment "${{ github.event.issue.number }}" --body "CLOUDINARY_RESULT $result"
