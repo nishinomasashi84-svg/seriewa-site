@@ -33,6 +33,8 @@
 - 新規記事に必要なタイトル、説明、本文セクション、一覧カード、TOPICS、sitemap用データを送る。
 - 画像が添付されている場合は `openaiFileIdRefs` を使う。
 - 新規記事投稿の処理で既存記事本文を変更しない。
+- Dispatch後、同じ `request_id` で `getSeriewaBlogOperationResult` を確認する。
+- `status` が `live_verified` の場合だけ、公開URLとCloudinaryの `secure_url` をユーザーへ報告する。
 
 ## 操作の判定
 
