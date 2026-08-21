@@ -1,3 +1,4 @@
+// CI trigger only: this branch is not intended to merge.
 import fs from "node:fs";
 import path from "node:path";
 
