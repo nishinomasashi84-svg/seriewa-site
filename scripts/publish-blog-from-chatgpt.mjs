@@ -43,8 +43,12 @@ function read(relativePath) {
 function cloudinaryDeliveryUrl(url, transformation) {
   if (!url) return "";
   const parsed = new URL(url);
-  if (parsed.protocol !== "https:" || parsed.hostname !== "res.cloudinary.com") {
-    fail("article images must use an HTTPS Cloudinary delivery URL");
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.hostname !== "res.cloudinary.com" ||
+    !parsed.pathname.includes("/image/upload/")
+  ) {
+    fail("article images must use an HTTPS Cloudinary image delivery URL");
   }
   return url.replace("/upload/", `/upload/${transformation}/`);
 }
