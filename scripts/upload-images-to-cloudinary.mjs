@@ -8,13 +8,30 @@ const outputFile = process.env.SERIEWA_CLOUDINARY_RESULT_FILE;
 const repoRoot = path.resolve(process.env.SERIEWA_REPO_ROOT || process.cwd());
 const payload = JSON.parse(process.env.SERIEWA_BLOG_PAYLOAD || "{}");
 
-const rawImages = Array.isArray(payload.image_sources)
+const explicitImages = Array.isArray(payload.image_sources)
   ? payload.image_sources
   : payload.image_source
     ? [payload.image_source]
     : [];
+const openAIFileRefs = Array.isArray(payload.openaiFileIdRefs) ? payload.openaiFileIdRefs : [];
 
-if (rawImages.length > 8) throw new Error("image_sources must contain at most 8 images");
+const rawImages = explicitImages.length
+  ? explicitImages
+  : openAIFileRefs.map((item, index) => {
+      if (!item || typeof item !== "object" || typeof item.download_link !== "string") {
+        throw new Error(`openaiFileIdRefs[${index}] did not contain a downloadable file reference`);
+      }
+      return {
+        source: item.download_link,
+        filename: item.name,
+        mime_type: item.mime_type,
+        alt: payload.image_alt,
+        caption: payload.image_caption,
+        openai_file_ref: true,
+      };
+    });
+
+if (rawImages.length > 8) throw new Error("image sources must contain at most 8 images");
 
 if (rawImages.length > 0) {
   if (!cloudName) throw new Error("CLOUDINARY_CLOUD_NAME is required");
@@ -77,6 +94,14 @@ function decodeEmbeddedBase64(spec, index) {
   return { bytes, contentType: mime, filename, alt: spec.alt, caption: spec.caption };
 }
 
+function validateOpenAIFileUrl(source) {
+  const parsed = new URL(source);
+  if (parsed.protocol !== "https:") throw new Error("ChatGPT attachment download URL must use HTTPS");
+  if (parsed.hostname !== "files.oaiusercontent.com" && !parsed.hostname.endsWith(".oaiusercontent.com")) {
+    throw new Error("ChatGPT attachment download URL must use an OpenAI file host");
+  }
+}
+
 async function readSource(item, index) {
   const spec = typeof item === "string" ? { source: item } : item;
 
@@ -89,13 +114,17 @@ async function readSource(item, index) {
   }
 
   if (/^https:\/\//i.test(source)) {
+    if (spec.openai_file_ref) validateOpenAIFileUrl(source);
+    const declaredMime = normalizedMime(spec.mime_type || spec.content_type);
     const response = await fetch(source, { redirect: "follow" });
     if (!response.ok) throw new Error(`Could not download image ${index + 1}: HTTP ${response.status}`);
-    const contentType = normalizedMime(response.headers.get("content-type"));
-    if (!contentType) {
-      throw new Error("Unsupported remote image type");
-    }
+    const contentLength = Number(response.headers.get("content-length") || 0);
+    if (contentLength > 10 * 1024 * 1024) throw new Error("Image exceeds the 10 MB workflow limit");
+    const responseMime = normalizedMime(response.headers.get("content-type"));
+    const contentType = responseMime || declaredMime || mimeFromName(spec.filename || "");
+    if (!contentType) throw new Error("Unsupported remote image type");
     const bytes = new Uint8Array(await response.arrayBuffer());
+    if (!bytes.byteLength) throw new Error(`Image ${index + 1} downloaded as an empty file`);
     if (bytes.byteLength > 10 * 1024 * 1024) throw new Error("Image exceeds the 10 MB workflow limit");
     const filename = spec.filename || `seriewa-blog-${index + 1}.${extensionForMime(contentType)}`;
     return { bytes, contentType, filename, alt: spec.alt, caption: spec.caption };
