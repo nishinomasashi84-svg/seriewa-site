@@ -8,19 +8,19 @@ const outputFile = process.env.SERIEWA_CLOUDINARY_RESULT_FILE;
 const repoRoot = path.resolve(process.env.SERIEWA_REPO_ROOT || process.cwd());
 const payload = JSON.parse(process.env.SERIEWA_BLOG_PAYLOAD || "{}");
 
-if (!cloudName) throw new Error("CLOUDINARY_CLOUD_NAME is required");
-if (!uploadPreset) throw new Error("CLOUDINARY_UPLOAD_PRESET is required");
-if (!/^[a-zA-Z0-9_-]+$/.test(cloudName)) throw new Error("Invalid Cloudinary cloud name");
-if (!/^[a-zA-Z0-9_-]+$/.test(uploadPreset)) throw new Error("Invalid Cloudinary upload preset");
-
 const rawImages = Array.isArray(payload.image_sources)
   ? payload.image_sources
   : payload.image_source
     ? [payload.image_source]
     : [];
 
-if (rawImages.length < 1 || rawImages.length > 8) {
-  throw new Error("image_sources must contain 1 to 8 images");
+if (rawImages.length > 8) throw new Error("image_sources must contain at most 8 images");
+
+if (rawImages.length > 0) {
+  if (!cloudName) throw new Error("CLOUDINARY_CLOUD_NAME is required");
+  if (!uploadPreset) throw new Error("CLOUDINARY_UPLOAD_PRESET is required");
+  if (!/^[a-zA-Z0-9_-]+$/.test(cloudName)) throw new Error("Invalid Cloudinary cloud name");
+  if (!/^[a-zA-Z0-9_-]+$/.test(uploadPreset)) throw new Error("Invalid Cloudinary upload preset");
 }
 
 function safeLocalPath(relativePath) {
