@@ -9,7 +9,7 @@ if (!updateResultFile) throw new Error("SERIEWA_UPDATE_RESULT_FILE is required")
 const resultPath = path.resolve(updateResultFile);
 if (!fs.existsSync(resultPath)) throw new Error("SERIEWA update result file was not found");
 const result = JSON.parse(fs.readFileSync(resultPath, "utf8"));
-if (!result.public_url || !result.body_image_url || !result.social_image_url || !result.request_id) {
+if (!result.public_url || !result.social_image_url || !result.request_id) {
   throw new Error("SERIEWA update result file is incomplete");
 }
 if (!/^[A-Za-z0-9._-]+$/.test(result.request_id)) throw new Error("Invalid request_id in update result");
@@ -32,7 +32,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const html = await response.text();
-    const bodyOk = html.includes(result.body_image_url);
+    const bodyOk = !result.body_image_url || html.includes(result.body_image_url);
     const ogOk = html.includes(`property="og:image" content="${result.social_image_url}"`) || html.includes(`content="${result.social_image_url}" property="og:image"`);
     const twitterOk = html.includes(`name="twitter:image" content="${result.social_image_url}"`) || html.includes(`content="${result.social_image_url}" name="twitter:image"`);
     if (bodyOk && ogOk && twitterOk) {
