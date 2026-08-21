@@ -42,23 +42,62 @@ function mimeFromName(name) {
   }[ext] || "";
 }
 
+function normalizedMime(value) {
+  const mime = String(value || "").split(";")[0].trim().toLowerCase();
+  return ["image/jpeg", "image/png", "image/webp"].includes(mime) ? mime : "";
+}
+
+function extensionForMime(mime) {
+  return mime === "image/jpeg" ? "jpg" : mime.split("/")[1];
+}
+
+function decodeEmbeddedBase64(spec, index) {
+  const raw = spec?.base64 || spec?.data_base64;
+  if (typeof raw !== "string" || !raw.trim()) return null;
+
+  let encoded = raw.trim();
+  let mime = normalizedMime(spec.mime_type || spec.content_type);
+  const dataUriMatch = encoded.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/is);
+  if (dataUriMatch) {
+    mime = normalizedMime(dataUriMatch[1]);
+    encoded = dataUriMatch[2];
+  }
+  if (!mime) mime = mimeFromName(spec.filename || "");
+  if (!mime) throw new Error(`image_sources[${index}] requires mime_type for embedded base64 data`);
+
+  encoded = encoded.replace(/\s+/g, "");
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) {
+    throw new Error(`image_sources[${index}] contains invalid base64 data`);
+  }
+
+  const bytes = Buffer.from(encoded, "base64");
+  if (!bytes.length) throw new Error(`image_sources[${index}] decoded to an empty image`);
+  if (bytes.byteLength > 10 * 1024 * 1024) throw new Error("Image exceeds the 10 MB workflow limit");
+  const filename = spec.filename || `seriewa-blog-${index + 1}.${extensionForMime(mime)}`;
+  return { bytes, contentType: mime, filename, alt: spec.alt, caption: spec.caption };
+}
+
 async function readSource(item, index) {
   const spec = typeof item === "string" ? { source: item } : item;
+
+  const embedded = decodeEmbeddedBase64(spec, index);
+  if (embedded) return embedded;
+
   const source = spec?.source || spec?.path || spec?.url;
   if (typeof source !== "string" || !source.trim()) {
-    throw new Error(`image_sources[${index}].source is required`);
+    throw new Error(`image_sources[${index}].source or base64 is required`);
   }
 
   if (/^https:\/\//i.test(source)) {
     const response = await fetch(source, { redirect: "follow" });
     if (!response.ok) throw new Error(`Could not download image ${index + 1}: HTTP ${response.status}`);
-    const contentType = (response.headers.get("content-type") || "").split(";")[0].toLowerCase();
-    if (!["image/jpeg", "image/png", "image/webp"].includes(contentType)) {
-      throw new Error(`Unsupported remote image type: ${contentType || "unknown"}`);
+    const contentType = normalizedMime(response.headers.get("content-type"));
+    if (!contentType) {
+      throw new Error("Unsupported remote image type");
     }
     const bytes = new Uint8Array(await response.arrayBuffer());
     if (bytes.byteLength > 10 * 1024 * 1024) throw new Error("Image exceeds the 10 MB workflow limit");
-    const filename = spec.filename || `seriewa-blog-${index + 1}.${contentType.split("/")[1].replace("jpeg", "jpg")}`;
+    const filename = spec.filename || `seriewa-blog-${index + 1}.${extensionForMime(contentType)}`;
     return { bytes, contentType, filename, alt: spec.alt, caption: spec.caption };
   }
 
