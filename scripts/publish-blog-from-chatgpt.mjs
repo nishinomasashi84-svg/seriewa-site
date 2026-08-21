@@ -40,6 +40,50 @@ function read(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 }
 
+function cloudinaryDeliveryUrl(url, transformation) {
+  if (!url) return "";
+  const parsed = new URL(url);
+  if (parsed.protocol !== "https:" || parsed.hostname !== "res.cloudinary.com") {
+    fail("article images must use an HTTPS Cloudinary delivery URL");
+  }
+  return url.replace("/upload/", `/upload/${transformation}/`);
+}
+
+function loadArticleImages() {
+  const resultFile = process.env.SERIEWA_CLOUDINARY_RESULT_FILE;
+  let candidates = [];
+
+  if (resultFile) {
+    const absolute = path.resolve(resultFile);
+    if (!fs.existsSync(absolute)) fail("Cloudinary result file was not found");
+    const parsed = JSON.parse(fs.readFileSync(absolute, "utf8"));
+    candidates = Array.isArray(parsed) ? parsed : parsed.images;
+  } else if (Array.isArray(payload.images)) {
+    candidates = payload.images;
+  } else if (payload.image) {
+    candidates = [payload.image];
+  }
+
+  if (!Array.isArray(candidates)) return [];
+  if (candidates.length > 8) fail("images must contain at most 8 items");
+
+  return candidates.map((item, index) => {
+    const source = typeof item === "string" ? item : item?.secure_url || item?.url;
+    const secureUrl = text(source, `images[${index}].secure_url`, 1000);
+    cloudinaryDeliveryUrl(secureUrl, "f_auto,q_auto,c_limit,w_1200");
+
+    const width = Number(item?.width || 0);
+    const height = Number(item?.height || 0);
+    return {
+      secureUrl,
+      alt: text(item?.alt || payload.image_alt || pageTitle, `images[${index}].alt`, 160),
+      caption: optionalText(item?.caption, `images[${index}].caption`, 240),
+      width: Number.isInteger(width) && width > 0 ? width : null,
+      height: Number.isInteger(height) && height > 0 ? height : null,
+    };
+  });
+}
+
 function write(relativePath, content) {
   const outputPath = path.join(repoRoot, relativePath);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
@@ -114,6 +158,19 @@ const displayDate = `${dateParts.year}.${dateParts.month}.${dateParts.day}`;
 const tagsHtml = tags.map((tag) => `<span>#${escapeHtml(tag)}</span>`).join("");
 const headlineHtml = headlineLines.map(escapeHtml).join("<br>");
 const ctaTitleHtml = ctaTitleLines.map(escapeHtml).join("<br>");
+const articleImages = loadArticleImages();
+const articleImagesHtml = articleImages.length
+  ? `    <div class="blog-media-grid">${articleImages.map((image, index) => {
+      const deliveryUrl = cloudinaryDeliveryUrl(image.secureUrl, "f_auto,q_auto,c_limit,w_1200");
+      const dimensions = image.width && image.height ? ` width="${image.width}" height="${image.height}"` : "";
+      const caption = image.caption ? `<figcaption>${escapeHtml(image.caption)}</figcaption>` : "";
+      return `<figure class="blog-media"><img src="${escapeHtml(deliveryUrl)}" alt="${escapeHtml(image.alt)}"${dimensions} loading="${index === 0 ? "eager" : "lazy"}" fetchpriority="${index === 0 ? "high" : "auto"}" decoding="async">${caption}</figure>`;
+    }).join("")}</div>`
+  : "";
+const ogImage = articleImages.length
+  ? cloudinaryDeliveryUrl(articleImages[0].secureUrl, "f_jpg,q_auto,c_fill,g_auto,w_1200,h_630")
+  : "https://seriew.com/og.png";
+
 const sectionsHtml = normalizedSections.map((section, index) => {
   const number = String(index + 1).padStart(2, "0");
   const paragraphsHtml = section.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("\n      ");
@@ -136,10 +193,10 @@ const articleHtml = `<!DOCTYPE html>
 <meta property="og:title" content="${escapeHtml(pageTitle)}">
 <meta property="og:description" content="${escapeHtml(ogDescription)}">
 <meta property="og:type" content="article">
-<meta property="og:image" content="https://seriew.com/og.png">
+<meta property="og:image" content="${escapeHtml(ogImage)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${escapeHtml(pageTitle)}">
-<meta name="twitter:description" content="${escapeHtml(ogDescription)}">
+<meta name="twitter:description" content="${escapeHtml(ogDescription)}">\n<meta name="twitter:image" content="${escapeHtml(ogImage)}">
 <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
@@ -155,6 +212,7 @@ const articleHtml = `<!DOCTYPE html>
       <p class="blog-intro">${escapeHtml(intro)}</p>
       <div class="blog-tags">${tagsHtml}</div>
     </div>
+${articleImagesHtml}
     <div class="blog-body">
       <p class="blog-lead">${escapeHtml(lead)}</p>
 
