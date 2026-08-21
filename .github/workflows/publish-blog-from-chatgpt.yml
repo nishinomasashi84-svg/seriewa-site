@@ -14,21 +14,32 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      SERIEWA_BLOG_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+      SERIEWA_CLOUDINARY_RESULT_FILE: ${{ runner.temp }}/seriewa-cloudinary-images.json
+
     steps:
       - name: Check out the current site
         uses: actions/checkout@v4
         with:
           ref: main
 
-      - name: Generate the new article and indexes
+      - name: Upload article images to Cloudinary
         env:
-          SERIEWA_BLOG_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_UPLOAD_PRESET: ${{ secrets.CLOUDINARY_UPLOAD_PRESET }}
+        run: node scripts/upload-images-to-cloudinary.mjs
+
+      - name: Generate the new article and indexes
         run: node scripts/publish-blog-from-chatgpt.mjs
 
-      - name: Validate generated files
+      - name: Validate generated files and Cloudinary URLs
         run: |
           git diff --check
           test -n "$(git status --short)"
+          if test -s "$SERIEWA_CLOUDINARY_RESULT_FILE"; then
+            node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.env.SERIEWA_CLOUDINARY_RESULT_FILE));for(const i of r.images||[]){if(!/^https:\/\/res\.cloudinary\.com\//.test(i.secure_url))process.exit(1)}'
+          fi
 
       - name: Publish to the main branch
         run: |
