@@ -1,0 +1,48 @@
+name: Cloudinary upload smoke test
+
+on:
+  push:
+    branches: [feat/cloudinary-blog-images]
+    paths:
+      - '.seriewa/upload-requests/*.json'
+
+permissions:
+  contents: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/cloudinary-blog-images
+
+      - name: Prepare upload request
+        shell: bash
+        run: |
+          request="$(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}" | grep '^\.seriewa/upload-requests/.*\.json$' | head -n 1)"
+          test -n "$request"
+          request_id="$(basename "$request" .json)"
+          payload="$(jq -c . "$request")"
+          echo "SERIEWA_BLOG_PAYLOAD=$payload" >> "$GITHUB_ENV"
+          echo "SERIEWA_CLOUDINARY_RESULT_FILE=$RUNNER_TEMP/cloudinary-result.json" >> "$GITHUB_ENV"
+          echo "RESULT_PATH=.seriewa/upload-results/$request_id.json" >> "$GITHUB_ENV"
+
+      - name: Upload image to Cloudinary
+        env:
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_UPLOAD_PRESET: ${{ secrets.CLOUDINARY_UPLOAD_PRESET }}
+        run: node scripts/upload-images-to-cloudinary.mjs
+
+      - name: Save upload result
+        shell: bash
+        run: |
+          mkdir -p "$(dirname "$RESULT_PATH")"
+          cp "$SERIEWA_CLOUDINARY_RESULT_FILE" "$RESULT_PATH"
+          node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.env.RESULT_PATH));if(!r.images?.[0]?.secure_url?.startsWith("https://res.cloudinary.com/"))process.exit(1)'
+          git config user.name "SERIE W Cloudinary Test"
+          git config user.email "250153830+nishinomasashi84-svg@users.noreply.github.com"
+          git add "$RESULT_PATH"
+          git commit -m "Record Cloudinary upload smoke test"
+          git push origin HEAD:feat/cloudinary-blog-images
