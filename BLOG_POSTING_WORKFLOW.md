@@ -1,6 +1,6 @@
 # SERIE W Blog Posting Workflow
 
-ChatGPTからのブログ投稿は、画像をCloudinaryへ保存し、GitHubにはCloudinaryの公開URLだけを記録する。
+ChatGPTからのブログ投稿・既存記事画像更新は、画像をCloudinaryへ保存し、GitHubにはCloudinaryの公開URLだけを記録する。
 
 ## 初回設定（1回のみ）
 
@@ -22,25 +22,55 @@ GitHubリポジトリの Actions secrets に以下を登録する。
 
 API Secretは登録・使用しない。Unsigned preset名はクライアントから利用できる値だが、不正アップロード対策のため公開HTMLや記事本文には書かず、GitHub Actions secretとして扱う。
 
-## ChatGPTからの自動投稿
+## 専用GPTのAction設定
 
-1. ユーザーがChatGPTに画像と記事内容を渡す。
-2. ChatGPTが `publish_seriewa_blog` の投稿データを送る。
+Actionスキーマの正本は `.seriewa/chatgpt-action-openapi.yaml`。
+
+- Server: `https://api.github.com`
+- Authentication: API Key / Bearer
+- GitHub側の認証情報は専用GPTのAction認証欄へ設定し、スキーマ本文やGPTの指示文には書かない。
+- トークンは `nishinomasashi84-svg/seriewa-site` のみに対象を限定したFine-grained PATを使い、必要最小限の権限にする。
+- ActionのGPT指示文は `.seriewa/SERIE_W_GPT_INSTRUCTIONS.md` を正本とする。
+- GPT Editorでスキーマと指示を更新した後、Previewで実画像を使って確認する。
+
+## 新規記事投稿
+
+1. ユーザーがChatGPTに記事内容と必要に応じて画像を渡す。
+2. 専用GPTが `publish_seriewa_blog` をrepository dispatchする。
 3. GitHub Actionsが `scripts/upload-images-to-cloudinary.mjs` を実行する。
 4. CloudinaryのUnsigned Upload APIが画像を受け取り、`secure_url` を返す。
-5. `scripts/publish-blog-from-chatgpt.mjs` が記事HTMLを生成する。
-6. 先頭画像を記事画像とOG画像に設定し、ブログ一覧・TOPICS・sitemapを更新する。
+5. `scripts/publish-blog-from-chatgpt.mjs` が新規記事HTMLを生成する。
+6. 先頭画像を記事画像とOG/Twitter画像に設定し、ブログ一覧・TOPICS・sitemapを更新する。
 7. 検証後、mainへ反映する。
+
+新規記事モードは既存slugを上書きしない。
+
+## 既存記事の画像差し替え
+
+ユーザーが写真を1枚添付し、`この写真で blog/futsal-tournament/ の画像を差し替えて` のように指示する。
+
+1. 専用GPTが `update_seriewa_blog_image` をrepository dispatchする。
+2. ChatGPTの添付画像参照 `openaiFileIdRefs` から一時ダウンロードURLを受け取る。
+3. GitHub Actionsが画像を一時的に取得し、CloudinaryのUnsigned Upload APIへ直接アップロードする。
+4. `scripts/replace-blog-image-from-chatgpt.mjs` が指定された `blog/<slug>/index.html` の主画像だけを差し替える。
+5. 同じCloudinary画像を元に、本文画像は `f_auto,q_auto,c_limit,w_1200`、`og:image` と `twitter:image` は `f_jpg,q_auto,c_fill,g_auto,w_1200,h_630` を使用する。
+6. 更新モードでは変更ファイルが指定記事HTMLの1ファイルだけであることをGitHub Actionsが検証する。ブログ一覧、TOPICS、sitemap、他の記事本文は変更しない。
+7. mainへpush後、`scripts/verify-seriewa-blog-live.mjs` が `seriew.com` の公開HTMLを確認する。
+8. 本文画像、`og:image`、`twitter:image` の3点が一致して確認できた場合だけ `.seriewa/blog-results/<request_id>.json` に `live_verified` の結果を記録する。
+
+指定記事に差し替え対象となる主画像が存在しない場合は、画像を勝手に挿入せず処理を失敗させる。
 
 ## 画像入力
 
-`client_payload.image_sources` に1〜8枚指定できる。GitHub内の画像パスまたはHTTPS URLを利用できる。
+新規記事では `client_payload.image_sources` または専用GPTの `client_payload.openaiFileIdRefs` を利用できる。既存記事画像差し替えでは、添付画像を1枚だけ使用する。
+
+従来の直接指定例:
 
 ```json
 {
   "image_sources": [
     {
-      "source": "images/blog/example.jpg",
+      "source": "https://example.invalid/example.jpg",
       "alt": "泉佐野市オークアリーナでフットサルを楽しむ参加者",
       "caption": "SERIE Wの活動風景"
     }
@@ -48,7 +78,24 @@ API Secretは登録・使用しない。Unsigned preset名はクライアント�
 }
 ```
 
-画像がない記事は従来どおり投稿できる。画像付き記事ではCloudinaryのURLを自動生成し、先頭画像は優先読み込み、2枚目以降は遅延読み込みにする。表示URLには `f_auto,q_auto,c_limit,w_1200`、OG画像には `f_jpg,q_auto,c_fill,g_auto,w_1200,h_630` を適用する。
+画像はJPEG、PNG、WebP、1枚10MB以下とする。GitHub Actions内で取得した添付画像のバイト列はリポジトリへcommitしない。
+
+## 更新時の安全策
+
+- 新規投稿 `publish_seriewa_blog` と既存画像更新 `update_seriewa_blog_image` を別イベントにする。
+- 既存画像更新の対象パスは `blog/<slug>/` または `blog/<slug>/index.html` のみ許可する。
+- 既存画像更新はアップロード画像1枚のみ許可する。
+- 既存画像更新で変更可能なGit差分は指定記事HTMLの1ファイルだけに限定する。
+- 本文の文章、見出し、リンク、一覧順、TOPICS、sitemapを更新しない。
+- `secure_url` が `https://res.cloudinary.com/` で始まることを検証する。
+- main反映後に公開サイト側でも本文・OG・Twitter画像を確認する。
+- 公開確認が終わるまでは成功結果を記録しない。
+
+## ChatGPT添付ファイルに関する注意
+
+専用GPTのActionは `openaiFileIdRefs` を使ってユーザー添付画像を外部処理へ渡す。この機能はOpenAI側のAction実行環境に依存するため、GPT EditorのPreviewで実画像を使ったE2Eテストを必ず行う。
+
+一時URLが外部から取得できない場合はCloudinaryアップロード前に失敗し、記事ファイルは変更されない。ファイル参照が取得できない状態で成功扱いにはしない。
 
 ## 運用ルール
 

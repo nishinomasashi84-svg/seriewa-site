@@ -1,0 +1,236 @@
+openapi: 3.1.0
+info:
+  title: SERIE W Blog Publisher
+  description: Trigger safe SERIE W blog publishing and existing-article image replacement workflows in GitHub Actions, then read the verified result.
+  version: 2.0.0
+servers:
+  - url: https://api.github.com
+paths:
+  /repos/nishinomasashi84-svg/seriewa-site/dispatches:
+    post:
+      operationId: dispatchSeriewaBlogOperation
+      summary: Publish a new SERIE W blog article or replace the primary image of an existing article.
+      description: Use publish_seriewa_blog for a new article. Use update_seriewa_blog_image only when replacing the image of an existing blog/<slug>/ article. For image replacement, attach exactly one user image through client_payload.openaiFileIdRefs and never send fields that rewrite article copy or listing order.
+      x-openai-isConsequential: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - event_type
+                - client_payload
+              properties:
+                event_type:
+                  type: string
+                  enum:
+                    - publish_seriewa_blog
+                    - update_seriewa_blog_image
+                  description: Select new article creation or existing article image replacement.
+                client_payload:
+                  type: object
+                  additionalProperties: false
+                  required:
+                    - request_id
+                  properties:
+                    request_id:
+                      type: string
+                      pattern: '^[A-Za-z0-9._-]+$'
+                      maxLength: 80
+                      description: Unique ID generated for this operation. Reuse it when reading the result.
+                    target_path:
+                      type: string
+                      pattern: '^blog/[a-z0-9]+(?:-[a-z0-9]+)*/(?:index\.html)?$'
+                      description: Required only for update_seriewa_blog_image. Example blog/futsal-tournament/.
+                    openaiFileIdRefs:
+                      type: array
+                      minItems: 1
+                      maxItems: 8
+                      items:
+                        type: string
+                      description: User-attached image file references supplied by ChatGPT. For update_seriewa_blog_image, send exactly one attached JPEG, PNG, or WebP image. The action runtime expands file references into downloadable file metadata before the request reaches GitHub.
+                    image_alt:
+                      type: string
+                      maxLength: 180
+                      description: Concrete Japanese alt text describing the attached image. For existing-image replacement, omit only if the current alt text should be preserved exactly.
+                    image_caption:
+                      type: string
+                      maxLength: 240
+                    slug:
+                      type: string
+                      pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+                      maxLength: 80
+                    page_title:
+                      type: string
+                      maxLength: 80
+                    meta_description:
+                      type: string
+                      maxLength: 160
+                    og_description:
+                      type: string
+                      maxLength: 160
+                    category_label:
+                      type: string
+                      maxLength: 40
+                    list_label:
+                      type: string
+                      maxLength: 40
+                    intro:
+                      type: string
+                      maxLength: 240
+                    lead:
+                      type: string
+                      maxLength: 500
+                    list_title:
+                      type: string
+                      maxLength: 100
+                    list_description:
+                      type: string
+                      maxLength: 180
+                    topic_title:
+                      type: string
+                      maxLength: 100
+                    cta_eyebrow:
+                      type: string
+                      maxLength: 60
+                    cta_title_lines:
+                      type: array
+                      minItems: 1
+                      maxItems: 3
+                      items:
+                        type: string
+                        maxLength: 60
+                    cta_text:
+                      type: string
+                      maxLength: 180
+                    headline_lines:
+                      type: array
+                      minItems: 1
+                      maxItems: 3
+                      items:
+                        type: string
+                        maxLength: 70
+                    tags:
+                      type: array
+                      minItems: 1
+                      maxItems: 4
+                      items:
+                        type: string
+                        maxLength: 30
+                    sections:
+                      type: array
+                      minItems: 2
+                      maxItems: 10
+                      items:
+                        type: object
+                        additionalProperties: false
+                        required:
+                          - heading
+                          - paragraphs
+                        properties:
+                          heading:
+                            type: string
+                            maxLength: 80
+                          paragraphs:
+                            type: array
+                            minItems: 1
+                            maxItems: 5
+                            items:
+                              type: string
+                              maxLength: 700
+                          bullets:
+                            type: array
+                            maxItems: 8
+                            items:
+                              type: string
+                              maxLength: 180
+                    related_link:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        href:
+                          type: string
+                          pattern: '^\.\./[a-z0-9]+(?:-[a-z0-9]+)*/$'
+                        label:
+                          type: string
+                          maxLength: 100
+      responses:
+        '204':
+          description: GitHub accepted the repository dispatch. The workflow continues in GitHub Actions.
+        '401':
+          description: GitHub authentication failed.
+        '403':
+          description: The configured GitHub credential lacks permission.
+        '422':
+          description: GitHub rejected the dispatch payload.
+      security:
+        - githubBearer: []
+  /repos/nishinomasashi84-svg/seriewa-site/contents/.seriewa/blog-results/{request_id}.json:
+    get:
+      operationId: getSeriewaBlogOperationResult
+      summary: Read a live-verified existing article image update result.
+      description: Call after dispatching update_seriewa_blog_image. A successful JSON result is written only after main is updated and the expected body, og:image, and twitter:image URLs are confirmed on seriew.com.
+      x-openai-isConsequential: false
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9._-]+$'
+            maxLength: 80
+        - name: Accept
+          in: header
+          required: true
+          schema:
+            type: string
+            enum:
+              - application/vnd.github.raw+json
+          description: Request the stored JSON as raw content instead of base64-wrapped GitHub content metadata.
+      responses:
+        '200':
+          description: Live verification completed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  operation:
+                    type: string
+                  request_id:
+                    type: string
+                  slug:
+                    type: string
+                  article_path:
+                    type: string
+                  public_url:
+                    type: string
+                    format: uri
+                  secure_url:
+                    type: string
+                    format: uri
+                  body_image_url:
+                    type: string
+                    format: uri
+                  social_image_url:
+                    type: string
+                    format: uri
+                  status:
+                    type: string
+                    enum:
+                      - live_verified
+                  verified_at:
+                    type: string
+                    format: date-time
+        '404':
+          description: The workflow is not live-verified yet, the request ID is wrong, or the workflow failed before recording a result.
+      security:
+        - githubBearer: []
+components:
+  securitySchemes:
+    githubBearer:
+      type: http
+      scheme: bearer
+      description: Fine-grained GitHub personal access token scoped only to nishinomasashi84-svg/seriewa-site with the minimum repository permissions needed to dispatch the workflow and read its result.

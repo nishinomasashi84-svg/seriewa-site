@@ -1,0 +1,86 @@
+name: Validate ChatGPT blog tools
+
+on:
+  push:
+    branches:
+      - feat/chatgpt-existing-image-replace
+  pull_request:
+    paths:
+      - '.github/workflows/publish-blog-from-chatgpt.yml'
+      - '.github/workflows/validate-chatgpt-blog-tools.yml'
+      - '.seriewa/chatgpt-action-openapi.yaml'
+      - 'scripts/upload-images-to-cloudinary.mjs'
+      - 'scripts/replace-blog-image-from-chatgpt.mjs'
+      - 'scripts/verify-seriewa-blog-live.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check scripts/upload-images-to-cloudinary.mjs
+          node --check scripts/replace-blog-image-from-chatgpt.mjs
+          node --check scripts/verify-seriewa-blog-live.mjs
+
+      - name: Parse Action OpenAPI YAML
+        run: ruby -e 'require "yaml"; YAML.load_file(".seriewa/chatgpt-action-openapi.yaml", aliases: true); puts "OpenAPI YAML parsed"'
+
+      - name: Test existing article image replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          mkdir -p "$tmp/blog/futsal-tournament"
+          cp blog/futsal-tournament/index.html "$tmp/blog/futsal-tournament/index.html"
+          cp "$tmp/blog/futsal-tournament/index.html" "$tmp/before.html"
+          cat > "$tmp/cloudinary.json" <<'JSON'
+          {
+            "images": [
+              {
+                "secure_url": "https://res.cloudinary.com/seriewa-ci/image/upload/v1/replacement.jpg",
+                "width": 1600,
+                "height": 1200
+              }
+            ]
+          }
+          JSON
+
+          SERIEWA_REPO_ROOT="$tmp" \
+          SERIEWA_BLOG_PAYLOAD='{"request_id":"ci-existing-image","target_path":"blog/futsal-tournament/","image_alt":"CIで差し替えたSERIE W大会写真"}' \
+          SERIEWA_CLOUDINARY_RESULT_FILE="$tmp/cloudinary.json" \
+          SERIEWA_UPDATE_RESULT_FILE="$tmp/result.json" \
+          node scripts/replace-blog-image-from-chatgpt.mjs
+
+          grep -F 'https://res.cloudinary.com/seriewa-ci/image/upload/f_auto,q_auto,c_limit,w_1200/v1/replacement.jpg' "$tmp/blog/futsal-tournament/index.html"
+          test "$(grep -o 'https://res.cloudinary.com/seriewa-ci/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1/replacement.jpg' "$tmp/blog/futsal-tournament/index.html" | wc -l)" -eq 2
+          grep -F 'CIで差し替えたSERIE W大会写真' "$tmp/blog/futsal-tournament/index.html"
+          grep -F '大人になってから「チームで戦う」って、意外とない' "$tmp/blog/futsal-tournament/index.html"
+          node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.argv[1]));if(r.article_path!=="blog/futsal-tournament/index.html"||r.status!=="ready_to_publish")process.exit(1)' "$tmp/result.json"
+
+      - name: Refuse articles without a replaceable primary image
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          mkdir -p "$tmp/blog/adult-youth-futsal"
+          cp blog/adult-youth-futsal/index.html "$tmp/blog/adult-youth-futsal/index.html"
+          cp "$tmp/blog/adult-youth-futsal/index.html" "$tmp/before.html"
+          cat > "$tmp/cloudinary.json" <<'JSON'
+          {"images":[{"secure_url":"https://res.cloudinary.com/seriewa-ci/image/upload/v1/replacement.jpg","width":1600,"height":1200}]}
+          JSON
+
+          if SERIEWA_REPO_ROOT="$tmp" \
+            SERIEWA_BLOG_PAYLOAD='{"request_id":"ci-no-image","target_path":"blog/adult-youth-futsal/"}' \
+            SERIEWA_CLOUDINARY_RESULT_FILE="$tmp/cloudinary.json" \
+            SERIEWA_UPDATE_RESULT_FILE="$tmp/result.json" \
+            node scripts/replace-blog-image-from-chatgpt.mjs; then
+            echo "Expected image replacement to fail for an article with no primary image" >&2
+            exit 1
+          fi
+          cmp "$tmp/before.html" "$tmp/blog/adult-youth-futsal/index.html"
