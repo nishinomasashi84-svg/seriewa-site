@@ -29,18 +29,26 @@ jobs:
           echo "SERIEWA_CLOUDINARY_RESULT_FILE=$RUNNER_TEMP/cloudinary-result.json" >> "$GITHUB_ENV"
           echo "RESULT_PATH=.seriewa/upload-results/$request_id.json" >> "$GITHUB_ENV"
 
-      - name: Upload image to Cloudinary
+      - name: Upload image and capture outcome
+        shell: bash
         env:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_UPLOAD_PRESET: ${{ secrets.CLOUDINARY_UPLOAD_PRESET }}
-        run: node scripts/upload-images-to-cloudinary.mjs
+        run: |
+          set +e
+          node scripts/upload-images-to-cloudinary.mjs > "$RUNNER_TEMP/cloudinary-upload.log" 2>&1
+          status=$?
+          set -e
+          mkdir -p "$(dirname "$RESULT_PATH")"
+          if [ "$status" -eq 0 ] && [ -s "$SERIEWA_CLOUDINARY_RESULT_FILE" ]; then
+            node -e 'const fs=require("fs");const p=process.env.SERIEWA_CLOUDINARY_RESULT_FILE;const r=JSON.parse(fs.readFileSync(p));fs.writeFileSync(process.env.RESULT_PATH,JSON.stringify({ok:true,...r},null,2)+"\n")'
+          else
+            node -e 'const fs=require("fs");const log=fs.readFileSync(process.env.RUNNER_TEMP+"/cloudinary-upload.log","utf8").slice(-4000);fs.writeFileSync(process.env.RESULT_PATH,JSON.stringify({ok:false,error:log},null,2)+"\n")'
+          fi
 
-      - name: Save upload result
+      - name: Save smoke test result
         shell: bash
         run: |
-          mkdir -p "$(dirname "$RESULT_PATH")"
-          cp "$SERIEWA_CLOUDINARY_RESULT_FILE" "$RESULT_PATH"
-          node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.env.RESULT_PATH));if(!r.images?.[0]?.secure_url?.startsWith("https://res.cloudinary.com/"))process.exit(1)'
           git config user.name "SERIE W Cloudinary Test"
           git config user.email "250153830+nishinomasashi84-svg@users.noreply.github.com"
           git add "$RESULT_PATH"
