@@ -3,5 +3,6 @@
     "path": ".cloudinary-smoke/indoor-shoes-20260822-1000.jpg",
     "filename": "indoor-shoes-20260822-1000.jpg",
     "mime_type": "image/jpeg"
-  }
+  },
+  "retry": 1
 }
