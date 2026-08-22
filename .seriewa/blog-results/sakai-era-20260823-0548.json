@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "sakai-era-20260823-0548",
+  "slug": "sakai-era",
+  "article_path": "blog/sakai-era/index.html",
+  "public_url": "https://seriew.com/blog/sakai-era/",
+  "secure_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/v1787431992/ch4ayxgxbwejvxjrejdd.jpg",
+  "body_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1787431992/ch4ayxgxbwejvxjrejdd.jpg",
+  "social_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1787431992/ch4ayxgxbwejvxjrejdd.jpg",
+  "article_number": "16",
+  "display_date": "2026.08.23",
+  "status": "live_verified",
+  "verified_at": "2026-08-22T20:54:04.911Z"
+}
