@@ -18,7 +18,6 @@ jobs:
           ref: main
 
       - name: Upload image from issue payload
-        id: upload
         shell: bash
         env:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
@@ -37,14 +36,21 @@ jobs:
               const req = JSON.parse(process.env.ISSUE_BODY || '{}');
               const img = req.image || {};
               let bytes;
-              if (img.base64) {
+              if (img.base64_parts_dir) {
+                const rel = String(img.base64_parts_dir);
+                if (!/^\.cloudinary-smoke\/[A-Za-z0-9._/-]+$/.test(rel) || rel.includes('..')) throw new Error('Invalid parts directory');
+                const dir = path.resolve(rel);
+                if (!dir.startsWith(path.resolve('.cloudinary-smoke') + path.sep)) throw new Error('Unsafe parts directory');
+                const files = fs.readdirSync(dir).filter(n => /^part\d+\.txt$/.test(n)).sort();
+                if (!files.length) throw new Error('No image parts found');
+                const base64 = files.map(n => fs.readFileSync(path.join(dir,n),'utf8').trim()).join('');
+                bytes = Buffer.from(base64, 'base64');
+              } else if (img.base64) {
                 bytes = Buffer.from(img.base64, 'base64');
               } else {
                 const rel = String(img.path || '');
                 if (!/^\.cloudinary-smoke\/[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp)$/i.test(rel)) throw new Error('Invalid temporary image path');
-                const resolved = path.resolve(rel);
-                if (!resolved.startsWith(path.resolve('.cloudinary-smoke') + path.sep)) throw new Error('Unsafe temporary image path');
-                bytes = fs.readFileSync(resolved);
+                bytes = fs.readFileSync(path.resolve(rel));
               }
               const form = new FormData();
               form.set('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET);
