@@ -16,8 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SERIEWA_BLOG_PAYLOAD: ${{ toJson(github.event.client_payload) }}
-      SERIEWA_CLOUDINARY_RESULT_FILE: ${{ runner.temp }}/seriewa-cloudinary-images.json
-      SERIEWA_UPDATE_RESULT_FILE: ${{ runner.temp }}/seriewa-blog-update.json
+      SERIEWA_CLOUDINARY_RESULT_FILE: /tmp/seriewa-cloudinary-images.json
+      SERIEWA_UPDATE_RESULT_FILE: /tmp/seriewa-blog-update.json
       SERIEWA_RESULT_DIR: .seriewa/blog-results
 
     steps:
