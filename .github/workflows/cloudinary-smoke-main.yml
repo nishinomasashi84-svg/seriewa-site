@@ -34,6 +34,7 @@ jobs:
         run: |
           node <<'NODE'
           const fs = require('fs');
+          const path = require('path');
           const { Blob } = require('buffer');
           (async () => {
             const req = JSON.parse(fs.readFileSync(process.env.REQUEST, 'utf8'));
@@ -42,7 +43,16 @@ jobs:
             try {
               if (!process.env.CLOUDINARY_CLOUD_NAME) throw new Error('CLOUDINARY_CLOUD_NAME is missing');
               if (!process.env.CLOUDINARY_UPLOAD_PRESET) throw new Error('CLOUDINARY_UPLOAD_PRESET is missing');
-              const bytes = Buffer.from(img.base64, 'base64');
+              let bytes;
+              if (img.base64) {
+                bytes = Buffer.from(img.base64, 'base64');
+              } else {
+                const rel = String(img.path || '');
+                if (!/^\.cloudinary-smoke\/[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp)$/i.test(rel)) throw new Error('Invalid temporary image path');
+                const resolved = path.resolve(rel);
+                if (!resolved.startsWith(path.resolve('.cloudinary-smoke') + path.sep)) throw new Error('Unsafe temporary image path');
+                bytes = fs.readFileSync(resolved);
+              }
               const form = new FormData();
               form.set('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET);
               form.set('file', new Blob([bytes], { type: img.mime_type }), img.filename);
