@@ -13,6 +13,10 @@ jobs:
     if: startsWith(github.event.issue.title, '[CLOUDINARY-SMOKE]')
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
       - name: Upload image from issue payload
         id: upload
         shell: bash
@@ -22,6 +26,8 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           node <<'NODE' > "$RUNNER_TEMP/result.json"
+          const fs = require('fs');
+          const path = require('path');
           const { Blob } = require('buffer');
           (async () => {
             const result = { ok: false };
@@ -29,11 +35,20 @@ jobs:
               if (!process.env.CLOUDINARY_CLOUD_NAME) throw new Error('CLOUDINARY_CLOUD_NAME is missing');
               if (!process.env.CLOUDINARY_UPLOAD_PRESET) throw new Error('CLOUDINARY_UPLOAD_PRESET is missing');
               const req = JSON.parse(process.env.ISSUE_BODY || '{}');
-              const img = req.image;
-              const bytes = Buffer.from(img.base64, 'base64');
+              const img = req.image || {};
+              let bytes;
+              if (img.base64) {
+                bytes = Buffer.from(img.base64, 'base64');
+              } else {
+                const rel = String(img.path || '');
+                if (!/^\.cloudinary-smoke\/[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp)$/i.test(rel)) throw new Error('Invalid temporary image path');
+                const resolved = path.resolve(rel);
+                if (!resolved.startsWith(path.resolve('.cloudinary-smoke') + path.sep)) throw new Error('Unsafe temporary image path');
+                bytes = fs.readFileSync(resolved);
+              }
               const form = new FormData();
               form.set('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET);
-              form.set('file', new Blob([bytes], { type: img.mime_type }), img.filename);
+              form.set('file', new Blob([bytes], { type: img.mime_type || 'image/jpeg' }), img.filename || 'seriewa-blog-image.jpg');
               const r = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(process.env.CLOUDINARY_CLOUD_NAME)}/image/upload`, { method: 'POST', body: form });
               const body = await r.json().catch(() => ({}));
               if (!r.ok || !body.secure_url) throw new Error(body.error?.message || `HTTP ${r.status}`);
