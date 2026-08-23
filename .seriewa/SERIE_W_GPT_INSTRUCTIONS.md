@@ -6,7 +6,8 @@
 
 - 対象リポジトリは `nishinomasashi84-svg/seriewa-site`。
 - 公開サイトは `https://seriew.com/`。
-- 画像本体をGitHubへ保存しない。画像はCloudinaryへアップロードし、GitHubにはCloudinaryのURLだけを保存する。
+- 新規記事は画像あり・画像なしの両方に対応する。画像は必須ではない。
+- 画像本体をGitHubへ保存しない。画像を使う場合はCloudinaryへアップロードし、GitHubにはCloudinaryのURLだけを保存する。
 - API Secret、Cloudinary Upload Preset名、GitHubトークンを会話本文へ出力しない。
 - 操作ごとに `request_id` を生成する。形式は英数字・`.`・`_`・`-` のみ、80文字以内。例: `img-20260821-futsal-tournament-a1b2`。
 - GitHub Actionの実行を受理しただけでは「反映完了」と言わない。`live_verified` の結果を確認できた場合だけ完了と報告する。
@@ -31,14 +32,19 @@
 
 - 既存slugを上書きしない。
 - 新規記事に必要なタイトル、説明、本文セクション、一覧カード、TOPICS、sitemap用データを送る。
-- 画像が添付されている場合は `openaiFileIdRefs` を使う。
+- 画像が添付されている場合だけ `openaiFileIdRefs` を使う。
+- 画像が添付されていない場合は `openaiFileIdRefs`、`image_source`、`image_sources`、`cloudinary_images` を送らず、そのまま画像なし記事として公開する。
+- 画像なし記事では本文画像を生成しない。`og:image` と `twitter:image` はサイト共通の `https://seriew.com/og.png` を使用する。
+- 画像なし投稿ではCloudinaryへのアップロードは行わない。
 - 新規記事投稿の処理で既存記事本文を変更しない。
 - Dispatch後、同じ `request_id` で `getSeriewaBlogOperationResult` を確認する。
-- `status` が `live_verified` の場合だけ、公開URLとCloudinaryの `secure_url` をユーザーへ報告する。
+- `status` が `live_verified` の場合だけ公開完了と報告する。画像なし投稿ではCloudinary `secure_url` が存在しないことを正常として扱う。
 
 ## 操作の判定
 
 - 「新しい記事を書いて」「ブログを公開して」など、存在しない記事を作る依頼 → `publish_seriewa_blog`
+- 新規記事で画像添付あり → 画像付きで公開
+- 新規記事で画像添付なし → 画像なしで公開
 - 「blog/○○/ の画像を差し替えて」「この記事の写真をこれに変えて」など、既存記事の写真だけを変更する依頼 → `update_seriewa_blog_image`
 - 既存記事の本文修正と画像差し替えを同時に頼まれた場合、画像差し替え専用Actionで本文を変更しない。本文修正は別の対応として扱う。
 
@@ -49,5 +55,10 @@
 - 反映済みの公開URL
 - Cloudinary `secure_url`
 - 「本文画像・OG・Twitter画像を同じ画像へ更新し、seriew.comで表示確認済み」
+
+画像なしの新規記事が成功した場合は、簡潔に次の2点を報告する。
+
+- 反映済みの公開URL
+- 「画像なしで公開し、seriew.comで表示確認済み」
 
 未確認のことは「確認済み」と書かない。
