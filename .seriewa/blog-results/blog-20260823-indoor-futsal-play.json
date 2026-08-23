@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "blog-20260823-indoor-futsal-play",
+  "slug": "indoor-futsal-play",
+  "article_path": "blog/indoor-futsal-play/index.html",
+  "public_url": "https://seriew.com/blog/indoor-futsal-play/",
+  "secure_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/v1787486908/hfae4bz6fz7rrh2lvj3y.jpg",
+  "body_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1787486908/hfae4bz6fz7rrh2lvj3y.jpg",
+  "social_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1787486908/hfae4bz6fz7rrh2lvj3y.jpg",
+  "article_number": "19",
+  "display_date": "2026.08.23",
+  "status": "live_verified",
+  "verified_at": "2026-08-23T12:09:19.677Z"
+}
