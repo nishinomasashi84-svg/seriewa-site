@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://seriew.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://seriew.com/blog/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://seriew.com/blog/oak-arena-location/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://seriew.com/blog/futsal-august-30/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://seriew.com/blog/indoor-futsal-play/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://seriew.com/blog/max-18-three-teams-tempo/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
