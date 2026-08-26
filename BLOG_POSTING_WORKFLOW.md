@@ -2,6 +2,19 @@
 
 ChatGPTからのブログ投稿・既存記事画像更新は、画像をCloudinaryへ保存し、GitHubにはCloudinaryの公開URLだけを記録する。
 
+## 公開前確認ルール（必須）
+
+新規ブログ記事は、画像あり・画像なしを問わず、必ず以下の2段階で扱う。
+
+1. ChatGPTが記事の完成版プレビューを作成し、ユーザーへ提示する。
+2. ユーザーがその完成版に対して明示的にOKした後だけ、本番公開Actionを実行する。
+
+最初の「ブログを書いて」「投稿して」「この写真で記事にして」といった依頼だけでは公開承認とみなさない。
+
+プレビューにはタイトル、本文、画像を使う場合は使用画像・配置・altなど、公開内容を判断できる情報を含める。修正依頼を受けた場合は修正版プレビューを再提示し、その修正版への承認を得るまで公開しない。
+
+承認前は `publish_seriewa_blog`、repository dispatch、GitHub Actionsその他の本番公開処理を実行してはならない。
+
 ## 初回設定（1回のみ）
 
 Cloudinary Consoleの Upload Presets でブログ専用プリセットを作る。
@@ -36,12 +49,16 @@ Actionスキーマの正本は `.seriewa/chatgpt-action-openapi.yaml`。
 ## 新規記事投稿
 
 1. ユーザーがChatGPTに記事内容と必要に応じて画像を渡す。
-2. 専用GPTが `publish_seriewa_blog` をrepository dispatchする。
-3. GitHub Actionsが `scripts/upload-images-to-cloudinary.mjs` を実行する。
-4. CloudinaryのUnsigned Upload APIが画像を受け取り、`secure_url` を返す。
-5. `scripts/publish-blog-from-chatgpt.mjs` が新規記事HTMLを生成する。
-6. 先頭画像を記事画像とOG/Twitter画像に設定し、ブログ一覧・TOPICS・sitemapを更新する。
-7. 検証後、mainへ反映する。
+2. ChatGPTがタイトル・本文・使用画像などを含む完成版プレビューを提示する。この時点では公開しない。
+3. ユーザーが完成版に対して明示的にOKする。
+4. 承認後に専用GPTが `publish_seriewa_blog` をrepository dispatchする。
+5. GitHub Actionsが `scripts/upload-images-to-cloudinary.mjs` を実行する。
+6. CloudinaryのUnsigned Upload APIが画像を受け取り、`secure_url` を返す。
+7. `scripts/publish-blog-from-chatgpt.mjs` が新規記事HTMLを生成する。
+8. 先頭画像を記事画像とOG/Twitter画像に設定し、ブログ一覧・TOPICS・sitemapを更新する。
+9. 検証後、mainへ反映する。
+
+画像なし記事でも1〜4の確認フローは同じ。画像がない場合はCloudinaryアップロードを行わず、そのまま画像なし記事として生成する。
 
 新規記事モードは既存slugを上書きしない。
 
@@ -83,6 +100,7 @@ Actionスキーマの正本は `.seriewa/chatgpt-action-openapi.yaml`。
 ## 更新時の安全策
 
 - 新規投稿 `publish_seriewa_blog` と既存画像更新 `update_seriewa_blog_image` を別イベントにする。
+- 新規投稿は、完成版プレビューへのユーザー承認がある場合だけ実行する。
 - 既存画像更新の対象パスは `blog/<slug>/` または `blog/<slug>/index.html` のみ許可する。
 - 既存画像更新はアップロード画像1枚のみ許可する。
 - 既存画像更新で変更可能なGit差分は指定記事HTMLの1ファイルだけに限定する。
