@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "run-20260828-futsal-stamina-01",
+  "slug": "futsal-stamina",
+  "article_path": "blog/futsal-stamina/index.html",
+  "public_url": "https://seriew.com/blog/futsal-stamina/",
+  "secure_url": "",
+  "body_image_url": "",
+  "social_image_url": "https://seriew.com/og.png",
+  "article_number": "26",
+  "display_date": "2026.08.28",
+  "status": "live_verified",
+  "verified_at": "2026-08-28T09:29:55.571Z"
+}
