@@ -175,6 +175,30 @@ function pageData(relativePath, html, articleDates) {
     };
   }
 
+  if (relativePath === "schedule/index.html") {
+    return {
+      "@context": "https://schema.org",
+      "@graph": [
+        organization(),
+        website(),
+        {
+          "@type": "WebPage",
+          "@id": `${canonical}#webpage`,
+          url: canonical,
+          name: title,
+          description,
+          isPartOf: { "@id": websiteId },
+          about: { "@id": organizationId },
+          inLanguage: "ja",
+        },
+        breadcrumb([
+          { name: "SERIE W", item: "https://seriew.com/" },
+          { name: "開催日程", item: canonical },
+        ]),
+      ],
+    };
+  }
+
   const dates = articleDates || gitDates(relativePath);
   const image = metaContent(html, "property", "og:image") || "https://seriew.com/og.png";
   return {
@@ -222,6 +246,7 @@ function validateData(data, relativePath) {
   const types = parsed["@graph"].flatMap((item) => Array.isArray(item["@type"]) ? item["@type"] : [item["@type"]]);
   if (relativePath === "index.html" && !types.includes("Organization")) fail("homepage Organization data is missing");
   if (relativePath === "blog/index.html" && !types.includes("CollectionPage")) fail("blog CollectionPage data is missing");
+  if (relativePath === "schedule/index.html" && (!types.includes("WebPage") || !types.includes("BreadcrumbList"))) fail("schedule page data is missing");
   if (relativePath.startsWith("blog/") && relativePath !== "blog/index.html" && !types.includes("BlogPosting")) fail(`${relativePath}: BlogPosting data is missing`);
 }
 
@@ -229,7 +254,7 @@ const articlePaths = fs.readdirSync(path.join(repoRoot, "blog"), { withFileTypes
   .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(repoRoot, "blog", entry.name, "index.html")))
   .map((entry) => `blog/${entry.name}/index.html`)
   .sort();
-const paths = ["index.html", "blog/index.html", ...articlePaths];
+const paths = ["index.html", "schedule/index.html", "blog/index.html", ...articlePaths];
 const changed = [];
 
 for (const relativePath of paths) {

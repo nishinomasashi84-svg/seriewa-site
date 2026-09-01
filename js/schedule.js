@@ -110,9 +110,72 @@
     root.appendChild(link);
   }
 
+  function renderScheduleList(root) {
+    var upcoming = getUpcoming();
+    root.innerHTML = "";
+    root.setAttribute("aria-label", "SERIE Wの開催日程一覧");
+
+    if (upcoming.length === 0) {
+      var empty = el("div", "schedule-page-empty");
+      empty.innerHTML = "<strong>次回日程は調整中です</strong><p>決まり次第、このページでお知らせします。LINEでもお気軽にお問い合わせください。</p>";
+      root.appendChild(empty);
+      return;
+    }
+
+    upcoming.forEach(function (session, index) {
+      var d = getDateParts(session.date);
+      var item = el("article", "schedule-event-card");
+      item.innerHTML =
+        "<div class=\"schedule-event-number\">" + String(index + 1).padStart(2, "0") + "</div>" +
+        "<div class=\"schedule-event-date\"><small>" + d.year + "</small><strong>" + d.month + "/" + d.day + "</strong><span>（" + d.weekday + "）</span></div>" +
+        "<dl>" +
+          "<div><dt>時間</dt><dd>" + session.startTime + "–" + session.endTime + "</dd></div>" +
+          "<div><dt>会場</dt><dd>" + session.venue + "</dd></div>" +
+          "<div><dt>参加費</dt><dd>" + session.fee + "</dd></div>" +
+        "</dl>" +
+        "<a href=\"https://lin.ee/b8IfUOO\" target=\"_blank\" rel=\"noreferrer\">この日程に参加する <span>↗</span></a>";
+      root.appendChild(item);
+    });
+  }
+
+  function addEventStructuredData() {
+    if (!document.querySelector("[data-schedule-page]")) return;
+    var upcoming = getUpcoming();
+    var existing = document.querySelector("script[data-seriewa-event-data]");
+    if (existing) existing.remove();
+    if (upcoming.length === 0) return;
+
+    var data = {
+      "@context": "https://schema.org",
+      "@graph": upcoming.map(function (session) {
+        return {
+          "@type": "SportsEvent",
+          "name": "SERIE W 個人参加型フットサル",
+          "startDate": session.date + "T" + session.startTime + ":00+09:00",
+          "endDate": session.date + "T" + session.endTime + ":00+09:00",
+          "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+          "eventStatus": "https://schema.org/EventScheduled",
+          "location": {
+            "@type": "Place",
+            "name": session.venue
+          },
+          "organizer": { "@id": "https://seriew.com/#organization" },
+          "url": "https://seriew.com/schedule/"
+        };
+      })
+    };
+    var script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.setAttribute("data-seriewa-event-data", "");
+    script.textContent = JSON.stringify(data);
+    document.head.appendChild(script);
+  }
+
   function init() {
     document.querySelectorAll("[data-schedule-board]").forEach(renderScheduleBoard);
     document.querySelectorAll("[data-next-session-ticket]").forEach(renderNextSessionTicket);
+    document.querySelectorAll("[data-schedule-list]").forEach(renderScheduleList);
+    addEventStructuredData();
   }
 
   if (document.readyState === "loading") {

@@ -15,6 +15,10 @@ on:
       - 'scripts/update-blog-from-chatgpt.mjs'
       - 'scripts/generate-structured-data.mjs'
       - 'scripts/verify-seriewa-blog-live.mjs'
+      - 'schedule/**'
+      - 'js/schedule.js'
+      - 'css/style.css'
+      - 'sitemap.xml'
 
 permissions:
   contents: read
