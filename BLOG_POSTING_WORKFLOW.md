@@ -2,6 +2,8 @@
 
 ChatGPTからのブログ投稿・既存記事画像更新は、画像をCloudinaryへ保存し、GitHubにはCloudinaryの公開URLだけを記録する。
 
+既存記事の本文・見出し・メタ情報・一覧・CTA・画像を差分更新するときは、通常ChatGPTコネクターの `update_seriewa_blog` を使う。新しい添付画像は先に `upload_seriewa_blog_image` でCloudinaryへ保存し、返された `secure_url` だけを更新要求へ渡す。
+
 ## 公開前確認ルール（必須）
 
 新規ブログ記事は、画像あり・画像なしを問わず、必ず以下の2段階で扱う。
@@ -77,6 +79,20 @@ Actionスキーマの正本は `.seriewa/chatgpt-action-openapi.yaml`。
 
 指定記事に差し替え対象となる主画像が存在しない場合は、画像を勝手に挿入せず処理を失敗させる。
 
+## 既存記事の差分更新
+
+1. `slug` からmain上の `blog/<slug>/index.html` を取得し、現在の `<title>` を確認する。
+2. `update_seriewa_blog` は現在タイトルを確認値として `update_seriewa_blog` のrepository dispatchへ含める。
+3. GitHub Actionsは更新直前に同じタイトルを再確認する。タイトルが変わっていれば古い確認に基づく上書きを拒否する。
+4. 未指定フィールドは既存HTMLを維持し、指定されたメタ情報、intro、lead、headline、tags、指定section、参考リンク、listing、CTA、画像だけを変更する。
+5. sectionは0始まりのindexまたは現在の見出し文字列で指定する。
+6. 画像は1〜8枚に対応し、`article_start`、`before_section`、`after_section`、`article_end`を指定できる。section前後ではindexまたは見出しを併用する。
+7. 追加画像の先頭（または `use_for_social: true`）を `og:image` と `twitter:image` に使う。
+8. 変更可能ファイルは対象記事、対象カードを含む `blog/index.html`、対象TOPICSを含む `index.html` に限定する。sitemapや無関係な記事は変更しない。
+9. main反映後、本文画像すべて、`og:image`、`twitter:image` をseriew.comで確認し、成功時だけ `live_verified` を記録する。
+
+slugが存在しない、現在タイトルが一致しない、section指定が一意に決まらない、更新差分が空の場合は処理を失敗させる。
+
 ## 画像入力
 
 新規記事では `client_payload.image_sources` または専用GPTの `client_payload.openaiFileIdRefs` を利用できる。既存記事画像差し替えでは、添付画像を1枚だけ使用する。
@@ -100,6 +116,7 @@ Actionスキーマの正本は `.seriewa/chatgpt-action-openapi.yaml`。
 ## 更新時の安全策
 
 - 新規投稿 `publish_seriewa_blog` と既存画像更新 `update_seriewa_blog_image` を別イベントにする。
+- 既存記事の差分更新は `update_seriewa_blog` としてさらに分離する。
 - 新規投稿は、完成版プレビューへのユーザー承認がある場合だけ実行する。
 - 既存画像更新の対象パスは `blog/<slug>/` または `blog/<slug>/index.html` のみ許可する。
 - 既存画像更新はアップロード画像1枚のみ許可する。

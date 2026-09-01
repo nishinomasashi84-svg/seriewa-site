@@ -3,6 +3,7 @@ name: Validate ChatGPT blog tools
 on:
   push:
     branches:
+      - main
       - feat/chatgpt-existing-image-replace
   pull_request:
     paths:
@@ -11,6 +12,7 @@ on:
       - '.seriewa/chatgpt-action-openapi.yaml'
       - 'scripts/upload-images-to-cloudinary.mjs'
       - 'scripts/replace-blog-image-from-chatgpt.mjs'
+      - 'scripts/update-blog-from-chatgpt.mjs'
       - 'scripts/verify-seriewa-blog-live.mjs'
 
 permissions:
@@ -26,6 +28,7 @@ jobs:
         run: |
           node --check scripts/upload-images-to-cloudinary.mjs
           node --check scripts/replace-blog-image-from-chatgpt.mjs
+          node --check scripts/update-blog-from-chatgpt.mjs
           node --check scripts/verify-seriewa-blog-live.mjs
 
       - name: Parse Action OpenAPI YAML
@@ -84,3 +87,53 @@ jobs:
             exit 1
           fi
           cmp "$tmp/before.html" "$tmp/blog/adult-youth-futsal/index.html"
+
+      - name: Test guarded partial article update and image insertion
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          mkdir -p "$tmp/blog/messi-argentina-retirement"
+          cp blog/messi-argentina-retirement/index.html "$tmp/blog/messi-argentina-retirement/index.html"
+          cp blog/index.html "$tmp/blog/index.html"
+          cp index.html "$tmp/index.html"
+          cp "$tmp/blog/messi-argentina-retirement/index.html" "$tmp/before.html"
+
+          SERIEWA_REPO_ROOT="$tmp" \
+          SERIEWA_BLOG_PAYLOAD='{"confirmation":{"request_id":"ci-partial-update","slug":"messi-argentina-retirement","expected_title":"メッシ、アルゼンチン代表引退。青春時代を見てきた選手がまた一人"},"metadata":{"meta_description":"CI差分更新テスト用の説明文"},"content":{"sections":[{"selector":{"index":0},"heading":"CIで変更した最初の見出し"}]},"images":[{"secure_url":"https://res.cloudinary.com/seriewa-ci/image/upload/v1/news.jpg","alt":"ニュース画面のCIテスト画像","caption":"CIテスト用キャプション","placement":{"position":"before_section","index":0}}]}' \
+          SERIEWA_UPDATE_RESULT_FILE="$tmp/result.json" \
+          node scripts/update-blog-from-chatgpt.mjs
+
+          grep -F 'CI差分更新テスト用の説明文' "$tmp/blog/messi-argentina-retirement/index.html"
+          grep -F 'CIで変更した最初の見出し' "$tmp/blog/messi-argentina-retirement/index.html"
+          grep -F 'https://res.cloudinary.com/seriewa-ci/image/upload/f_auto,q_auto,c_limit,w_1200/v1/news.jpg' "$tmp/blog/messi-argentina-retirement/index.html"
+          grep -F 'CIテスト用キャプション' "$tmp/blog/messi-argentina-retirement/index.html"
+          grep -F 'まさかフリーキックまで武器になるとは' "$tmp/blog/messi-argentina-retirement/index.html"
+          test "$(grep -o 'https://res.cloudinary.com/seriewa-ci/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1/news.jpg' "$tmp/blog/messi-argentina-retirement/index.html" | wc -l)" -eq 2
+          cmp "$tmp/blog/index.html" blog/index.html
+          cmp "$tmp/index.html" index.html
+          node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.argv[1]));if(r.operation!=="update_article"||r.current_title!=="メッシ、アルゼンチン代表引退。青春時代を見てきた選手がまた一人"||r.changed_files.length!==1)process.exit(1)' "$tmp/result.json"
+
+      - name: Refuse missing articles and stale title confirmations
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          mkdir -p "$tmp/blog/messi-argentina-retirement"
+          cp blog/messi-argentina-retirement/index.html "$tmp/blog/messi-argentina-retirement/index.html"
+          cp "$tmp/blog/messi-argentina-retirement/index.html" "$tmp/before.html"
+
+          if SERIEWA_REPO_ROOT="$tmp" \
+            SERIEWA_BLOG_PAYLOAD='{"confirmation":{"request_id":"ci-stale-title","slug":"messi-argentina-retirement","expected_title":"古いタイトル"},"content":{"intro":"変更してはいけない"}}' \
+            node scripts/update-blog-from-chatgpt.mjs; then
+            echo "Expected stale title confirmation to fail" >&2
+            exit 1
+          fi
+          cmp "$tmp/before.html" "$tmp/blog/messi-argentina-retirement/index.html"
+
+          if SERIEWA_REPO_ROOT="$tmp" \
+            SERIEWA_BLOG_PAYLOAD='{"confirmation":{"request_id":"ci-missing","slug":"missing-article","expected_title":"存在しない記事"},"content":{"intro":"変更してはいけない"}}' \
+            node scripts/update-blog-from-chatgpt.mjs; then
+            echo "Expected missing article update to fail" >&2
+            exit 1
+          fi

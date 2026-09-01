@@ -32,7 +32,10 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const html = await response.text();
-    const bodyOk = !result.body_image_url || html.includes(result.body_image_url);
+    const expectedBodyImages = Array.isArray(result.body_image_urls) && result.body_image_urls.length
+      ? result.body_image_urls
+      : result.body_image_url ? [result.body_image_url] : [];
+    const bodyOk = expectedBodyImages.every((imageUrl) => html.includes(imageUrl));
     const ogOk = html.includes(`property="og:image" content="${result.social_image_url}"`) || html.includes(`content="${result.social_image_url}" property="og:image"`);
     const twitterOk = html.includes(`name="twitter:image" content="${result.social_image_url}"`) || html.includes(`content="${result.social_image_url}" name="twitter:image"`);
     if (bodyOk && ogOk && twitterOk) {
@@ -44,7 +47,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
       console.log(JSON.stringify(result, null, 2));
       process.exit(0);
     }
-    lastError = `attempt ${attempt}: expected image URLs were not all present yet`;
+    lastError = `attempt ${attempt}: expected article content or image URLs were not all present yet`;
   } catch (error) {
     lastError = `attempt ${attempt}: ${error?.message || error}`;
   }
