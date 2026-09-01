@@ -73,6 +73,20 @@ function gitDates(relativePath) {
     modified: history.length ? history[0].slice(0, 10) : today,
   };
 }
+function existingArticleDates(html) {
+  const match = html.match(new RegExp(`<script\\b[^>]*\\b${marker}\\b[^>]*>([\\s\\S]*?)<\\/script>`, "i"));
+  if (!match) return {};
+  try {
+    const data = JSON.parse(match[1]);
+    const article = data["@graph"]?.find((item) => item["@type"] === "BlogPosting");
+    return {
+      published: /^\d{4}-\d{2}-\d{2}$/.test(article?.datePublished || "") ? article.datePublished : undefined,
+      modified: /^\d{4}-\d{2}-\d{2}$/.test(article?.dateModified || "") ? article.dateModified : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
 function organization() {
   return {
     "@type": "Organization",
@@ -112,7 +126,7 @@ function breadcrumb(items) {
     })),
   };
 }
-function pageData(relativePath, html, modifiedDate) {
+function pageData(relativePath, html, articleDates) {
   const title = titleFrom(html);
   const description = metaContent(html, "name", "description");
   const canonical = canonicalFrom(html);
@@ -161,7 +175,7 @@ function pageData(relativePath, html, modifiedDate) {
     };
   }
 
-  const dates = gitDates(relativePath);
+  const dates = articleDates || gitDates(relativePath);
   const image = metaContent(html, "property", "og:image") || "https://seriew.com/og.png";
   return {
     "@context": "https://schema.org",
@@ -173,7 +187,7 @@ function pageData(relativePath, html, modifiedDate) {
         description,
         image: [image],
         datePublished: dates.published,
-        dateModified: modifiedDate || dates.modified,
+        dateModified: dates.modified,
         mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
         author: { "@id": organizationId },
         publisher: { "@id": organizationId },
@@ -220,16 +234,15 @@ const changed = [];
 
 for (const relativePath of paths) {
   const html = read(relativePath);
-  const dates = relativePath.startsWith("blog/") && relativePath !== "blog/index.html" ? gitDates(relativePath) : null;
-  let modifiedDate = dates?.modified;
-  let data = pageData(relativePath, html, isDirty(relativePath) ? today : modifiedDate);
-  let updated = replaceStructuredData(html, structuredBlock(data));
-
-  if (relativePath.startsWith("blog/") && relativePath !== "blog/index.html" && updated !== html && modifiedDate !== today) {
-    modifiedDate = today;
-    data = pageData(relativePath, html, modifiedDate);
-    updated = replaceStructuredData(html, structuredBlock(data));
-  }
+  const isArticle = relativePath.startsWith("blog/") && relativePath !== "blog/index.html";
+  const historyDates = isArticle ? gitDates(relativePath) : null;
+  const savedDates = isArticle ? existingArticleDates(html) : {};
+  const articleDates = isArticle ? {
+    published: savedDates.published || historyDates.published,
+    modified: isDirty(relativePath) ? today : (savedDates.modified || historyDates.modified),
+  } : null;
+  const data = pageData(relativePath, html, articleDates);
+  const updated = replaceStructuredData(html, structuredBlock(data));
   validateData(data, relativePath);
 
   if (updated !== html) {
