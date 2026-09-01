@@ -58,7 +58,8 @@ Actionスキーマの正本は `.seriewa/chatgpt-action-openapi.yaml`。
 6. CloudinaryのUnsigned Upload APIが画像を受け取り、`secure_url` を返す。
 7. `scripts/publish-blog-from-chatgpt.mjs` が新規記事HTMLを生成する。
 8. 先頭画像を記事画像とOG/Twitter画像に設定し、ブログ一覧・TOPICS・sitemapを更新する。
-9. 検証後、mainへ反映する。
+9. Organization、WebSite、BlogPosting、BreadcrumbListのJSON-LDを自動生成・更新する。
+10. 検証後、mainへ反映する。
 
 画像なし記事でも1〜4の確認フローは同じ。画像がない場合はCloudinaryアップロードを行わず、そのまま画像なし記事として生成する。
 
@@ -75,7 +76,8 @@ Actionスキーマの正本は `.seriewa/chatgpt-action-openapi.yaml`。
 5. 同じCloudinary画像を元に、本文画像は `f_auto,q_auto,c_limit,w_1200`、`og:image` と `twitter:image` は `f_jpg,q_auto,c_fill,g_auto,w_1200,h_630` を使用する。
 6. 更新モードでは変更ファイルが指定記事HTMLの1ファイルだけであることをGitHub Actionsが検証する。ブログ一覧、TOPICS、sitemap、他の記事本文は変更しない。
 7. mainへpush後、`scripts/verify-seriewa-blog-live.mjs` が `seriew.com` の公開HTMLを確認する。
-8. 本文画像、`og:image`、`twitter:image` の3点が一致して確認できた場合だけ `.seriewa/blog-results/<request_id>.json` に `live_verified` の結果を記録する。
+8. 対象記事のJSON-LDを更新し、`dateModified`、見出し、説明、画像を現在の内容と同期する。
+9. 本文画像、`og:image`、`twitter:image` の3点が一致して確認できた場合だけ `.seriewa/blog-results/<request_id>.json` に `live_verified` の結果を記録する。
 
 指定記事に差し替え対象となる主画像が存在しない場合は、画像を勝手に挿入せず処理を失敗させる。
 
@@ -89,7 +91,8 @@ Actionスキーマの正本は `.seriewa/chatgpt-action-openapi.yaml`。
 6. 画像は1〜8枚に対応し、`article_start`、`before_section`、`after_section`、`article_end`を指定できる。section前後ではindexまたは見出しを併用する。
 7. 追加画像の先頭（または `use_for_social: true`）を `og:image` と `twitter:image` に使う。
 8. 変更可能ファイルは対象記事、対象カードを含む `blog/index.html`、対象TOPICSを含む `index.html` に限定する。sitemapや無関係な記事は変更しない。
-9. main反映後、本文画像すべて、`og:image`、`twitter:image` をseriew.comで確認し、成功時だけ `live_verified` を記録する。
+9. 対象記事のJSON-LDを更新し、`dateModified`、見出し、説明、画像を現在の内容と同期する。
+10. main反映後、本文画像すべて、`og:image`、`twitter:image` をseriew.comで確認し、成功時だけ `live_verified` を記録する。
 
 slugが存在しない、現在タイトルが一致しない、section指定が一意に決まらない、更新差分が空の場合は処理を失敗させる。
 

@@ -13,6 +13,7 @@ on:
       - 'scripts/upload-images-to-cloudinary.mjs'
       - 'scripts/replace-blog-image-from-chatgpt.mjs'
       - 'scripts/update-blog-from-chatgpt.mjs'
+      - 'scripts/generate-structured-data.mjs'
       - 'scripts/verify-seriewa-blog-live.mjs'
 
 permissions:
@@ -29,7 +30,11 @@ jobs:
           node --check scripts/upload-images-to-cloudinary.mjs
           node --check scripts/replace-blog-image-from-chatgpt.mjs
           node --check scripts/update-blog-from-chatgpt.mjs
+          node --check scripts/generate-structured-data.mjs
           node --check scripts/verify-seriewa-blog-live.mjs
+
+      - name: Validate structured data
+        run: node scripts/generate-structured-data.mjs --check
 
       - name: Parse Action OpenAPI YAML
         run: |

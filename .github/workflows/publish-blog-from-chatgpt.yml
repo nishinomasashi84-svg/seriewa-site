@@ -45,6 +45,9 @@ jobs:
         if: github.event.action == 'update_seriewa_blog'
         run: node scripts/update-blog-from-chatgpt.mjs
 
+      - name: Refresh structured data
+        run: node scripts/generate-structured-data.mjs
+
       - name: Validate generated files and Cloudinary URLs
         shell: bash
         run: |
