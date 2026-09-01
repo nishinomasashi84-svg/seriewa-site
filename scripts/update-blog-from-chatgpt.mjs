@@ -250,6 +250,10 @@ if (socialImageUrl) {
   article = replaceMeta(article, "name", "twitter:image", socialImageUrl);
 }
 
+// Insertions may meet an already-indented section boundary. Keep generated HTML
+// free of whitespace-only line tails so the guarded git diff check stays strict.
+article = article.replace(/[ \t]+(?=\r?\n)/g, "");
+
 const changedFiles = [];
 if (article !== originalArticle) {
   write(articlePath, article);
