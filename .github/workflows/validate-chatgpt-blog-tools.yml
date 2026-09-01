@@ -32,7 +32,8 @@ jobs:
           node --check scripts/verify-seriewa-blog-live.mjs
 
       - name: Parse Action OpenAPI YAML
-        run: ruby -e 'require "yaml"; YAML.load_file(".seriewa/chatgpt-action-openapi.yaml", aliases: true); puts "OpenAPI YAML parsed"'
+        run: |
+          ruby -e 'require "yaml"; YAML.load_file(".seriewa/chatgpt-action-openapi.yaml", aliases: true); puts "OpenAPI YAML parsed"'
 
       - name: Test existing article image replacement
         shell: bash
