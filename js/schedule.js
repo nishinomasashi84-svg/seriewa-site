@@ -4,7 +4,9 @@
   var sessions = [
     { date: "2026-08-30", startTime: "17:00", endTime: "19:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" },
     { date: "2026-09-13", startTime: "17:00", endTime: "19:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" },
-    { date: "2026-09-27", startTime: "15:00", endTime: "17:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" }
+    { date: "2026-09-27", startTime: "15:00", endTime: "17:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" },
+    { date: "2026-10-18", startTime: "17:00", endTime: "19:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" },
+    { date: "2026-10-31", startTime: "19:00", endTime: "21:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" }
   ];
 
   var weekdays = ["日", "月", "火", "水", "木", "金", "土"];
