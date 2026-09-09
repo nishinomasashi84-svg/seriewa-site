@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "seriew-20260910-rest-active-weekend",
+  "slug": "active-rest-weekend",
+  "article_path": "blog/active-rest-weekend/index.html",
+  "public_url": "https://seriew.com/blog/active-rest-weekend/",
+  "secure_url": "",
+  "body_image_url": "",
+  "social_image_url": "https://seriew.com/og.png",
+  "article_number": "34",
+  "display_date": "2026.09.10",
+  "status": "live_verified",
+  "verified_at": "2026-09-09T23:20:12.653Z"
+}
