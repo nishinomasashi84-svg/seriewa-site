@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "pistachio-exchange-20260922",
+  "slug": "pistachio-exchange",
+  "article_path": "blog/pistachio-exchange/index.html",
+  "public_url": "https://seriew.com/blog/pistachio-exchange/",
+  "secure_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/v1790030148/ca7cea2jd0zphkc5hgby.jpg",
+  "body_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1790030148/ca7cea2jd0zphkc5hgby.jpg",
+  "social_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1790030148/ca7cea2jd0zphkc5hgby.jpg",
+  "article_number": "38",
+  "display_date": "2026.09.22",
+  "status": "live_verified",
+  "verified_at": "2026-09-21T22:36:53.734Z"
+}
