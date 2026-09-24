@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "seriew-20260924-japan-support",
+  "slug": "japan-national-team-support",
+  "article_path": "blog/japan-national-team-support/index.html",
+  "public_url": "https://seriew.com/blog/japan-national-team-support/",
+  "secure_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/v1790252486/r4xouytmje13xrad2ahe.jpg",
+  "body_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1790252486/r4xouytmje13xrad2ahe.jpg",
+  "social_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1790252486/r4xouytmje13xrad2ahe.jpg",
+  "article_number": "39",
+  "display_date": "2026.09.24",
+  "status": "live_verified",
+  "verified_at": "2026-09-24T12:22:34.264Z"
+}
