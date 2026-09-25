@@ -157,11 +157,35 @@
           "endDate": session.date + "T" + session.endTime + ":00+09:00",
           "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
           "eventStatus": "https://schema.org/EventScheduled",
+          "description": "初心者・ひとり参加歓迎の個人参加型フットサルです。上手い・下手に関係なく気軽に参加できます。参加費は1名1,000円です。",
+          "image": [
+            "https://seriew.com/og.png"
+          ],
           "location": {
             "@type": "Place",
-            "name": session.venue
+            "name": session.venue,
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "南中樫井428-1",
+              "addressLocality": "泉佐野市",
+              "addressRegion": "大阪府",
+              "postalCode": "598-0035",
+              "addressCountry": "JP"
+            }
           },
-          "organizer": { "@id": "https://seriew.com/#organization" },
+          "offers": {
+            "@type": "Offer",
+            "url": "https://seriew.com/schedule/",
+            "price": 1000,
+            "priceCurrency": "JPY",
+            "availability": "https://schema.org/InStock"
+          },
+          "organizer": {
+            "@type": "Organization",
+            "@id": "https://seriew.com/#organization",
+            "name": "SERIE W",
+            "url": "https://seriew.com/"
+          },
           "url": "https://seriew.com/schedule/"
         };
       })
