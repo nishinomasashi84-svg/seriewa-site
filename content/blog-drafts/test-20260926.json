@@ -4,15 +4,15 @@
   "timezone": "Asia/Tokyo",
   "source_spreadsheet": "https://docs.google.com/spreadsheets/d/1RCaXXVwwtMHFJjzPgtCEoRRwPGQbaITCUiAwpPVgTl4/edit",
   "source_tab": "30日ブログ計画",
-  "mode": "draft_only",
+  "mode": "partially_published",
   "articles": [
     {
       "plan_number": 2,
       "planned_date": "2026-09-25",
       "planned_date_label": "2026-09-25（金）",
-      "status": "draft",
+      "status": "published",
       "publish_at": null,
-      "editorial_note": "元の計画日を保持。自動公開日時は未設定。過去日分の一括公開はしない。",
+      "editorial_note": "ユーザー承認により公開済み。seriew.comの本文・ブログ一覧・トップ掲載確認済み。",
       "sources": [
         {
           "title": "SERIE W 公式サイト",
@@ -74,15 +74,17 @@
           "まずはLINEでご相談ください。"
         ],
         "cta_text": "参加希望日とお名前を公式LINEへ。初参加やブランクのある方も、空き状況・持ち物を気軽にお問い合わせください。"
-      }
+      },
+      "published_on": "2026-09-26",
+      "public_url": "https://seriew.com/blog/restart-futsal-30s-40s/"
     },
     {
       "plan_number": 3,
       "planned_date": "2026-09-26",
       "planned_date_label": "2026-09-26（土）",
-      "status": "draft",
+      "status": "published",
       "publish_at": null,
-      "editorial_note": "元の計画日を保持。自動公開日時は未設定。過去日分の一括公開はしない。",
+      "editorial_note": "ユーザー承認により公開済み。seriew.comの本文・ブログ一覧・トップ掲載確認済み。",
       "sources": [
         {
           "title": "SERIE W 公式サイト",
@@ -143,7 +145,9 @@
           "まずはLINEでご相談ください。"
         ],
         "cta_text": "参加希望日とお名前を公式LINEへ。初参加やブランクのある方も、空き状況・持ち物を気軽にお問い合わせください。"
-      }
+      },
+      "published_on": "2026-09-26",
+      "public_url": "https://seriew.com/blog/kosal-first-game-guide/"
     },
     {
       "plan_number": 4,
