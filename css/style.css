@@ -651,3 +651,17 @@ body{padding-bottom:0;}
   .r-floating-line{bottom:18px;}
   .r-footer{padding-bottom:110px;}
 }
+
+
+/* compact header quick menu */
+.r-top-quicknav a{flex-basis:108px;min-width:108px;height:60px;gap:3px;}
+.r-top-quicknav .r-dock-icon{width:25px;height:25px;font-size:15px;border-radius:7px;}
+.r-top-quicknav .r-dock-youtube{font-size:11px;}
+.r-top-quicknav .r-dock-line{font-size:7px;}
+.r-top-quicknav strong{font-size:11px;}
+@media(max-width:640px){
+  .r-top-quicknav-scroll{justify-content:flex-start;padding:0 4px;}
+  .r-top-quicknav a{flex-basis:88px;min-width:88px;height:56px;gap:3px;}
+  .r-top-quicknav .r-dock-icon{width:24px;height:24px;font-size:14px;}
+  .r-top-quicknav strong{font-size:10px;}
+}
