@@ -665,3 +665,14 @@ body{padding-bottom:0;}
   .r-top-quicknav .r-dock-icon{width:24px;height:24px;font-size:14px;}
   .r-top-quicknav strong{font-size:10px;}
 }
+
+
+/* mobile quick menu: fit all five items in one row */
+@media(max-width:640px){
+  .r-top-quicknav-scroll{width:100%;max-width:none;padding:0;overflow-x:hidden;justify-content:stretch;}
+  .r-top-quicknav a{flex:1 1 20%;min-width:0;height:54px;padding:4px 1px;gap:2px;}
+  .r-top-quicknav .r-dock-icon{width:23px;height:23px;font-size:13px;border-radius:6px;}
+  .r-top-quicknav .r-dock-youtube{font-size:10px;}
+  .r-top-quicknav .r-dock-line{font-size:6px;}
+  .r-top-quicknav strong{font-size:9px;line-height:1.05;letter-spacing:-.03em;}
+}
