@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "seriewa-origin-20260927-0956",
+  "slug": "futsal-origin-no-soccer-club",
+  "article_path": "blog/futsal-origin-no-soccer-club/index.html",
+  "public_url": "https://seriew.com/blog/futsal-origin-no-soccer-club/",
+  "secure_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/v1790470637/afzyhjlbmsqgpvxfxeqj.jpg",
+  "body_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1790470637/afzyhjlbmsqgpvxfxeqj.jpg",
+  "social_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1790470637/afzyhjlbmsqgpvxfxeqj.jpg",
+  "article_number": "44",
+  "display_date": "2026.09.27",
+  "status": "live_verified",
+  "verified_at": "2026-09-27T00:58:21.960Z"
+}
