@@ -556,3 +556,50 @@ a:focus-visible{outline:3px solid #2679ba;outline-offset:5px}
   .gallery-grid{grid-template-columns:1fr;gap:18px;}
   .gallery-more{align-items:flex-start;flex-direction:column;padding:26px;}
 }
+
+
+/* ---------- persistent bottom quick menu ---------- */
+body{padding-bottom:92px;}
+.r-bottom-dock{
+  position:fixed;left:0;right:0;bottom:0;z-index:90;
+  background:rgba(255,255,255,.97);border-top:1px solid var(--line);
+  box-shadow:0 -8px 24px rgba(24,51,43,.08);
+  padding-bottom:env(safe-area-inset-bottom);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.r-bottom-dock-scroll{
+  display:flex;align-items:stretch;justify-content:center;
+  max-width:760px;margin:0 auto;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  overscroll-behavior-x:contain;
+}
+.r-bottom-dock-scroll::-webkit-scrollbar{display:none;}
+.r-bottom-dock a{
+  flex:0 0 132px;min-width:132px;height:76px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;font-size:12px;font-weight:800;white-space:nowrap;
+}
+.r-bottom-dock a:hover{background:#f2f5f3;}
+.r-dock-icon{
+  width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+  border-radius:8px;background:#e8efeb;color:var(--dark);
+  font-size:18px;font-weight:900;line-height:1;
+}
+.r-dock-instagram{border-radius:9px;background:#f2ecef;}
+.r-dock-youtube{background:#f7e9e7;color:#a83d31;font-size:14px;}
+.r-dock-line{background:var(--green);color:#fff;font-size:8px;letter-spacing:-.02em;}
+.r-bottom-dock strong{font-size:12px;line-height:1;font-weight:800;}
+.r-floating-line{bottom:calc(96px + env(safe-area-inset-bottom));}
+.r-footer{padding-bottom:44px;}
+
+@media(max-width:640px){
+  body{padding-bottom:calc(82px + env(safe-area-inset-bottom));}
+  .r-bottom-dock-scroll{justify-content:flex-start;padding:0 10px;}
+  .r-bottom-dock a{flex-basis:104px;min-width:104px;height:70px;}
+  .r-dock-icon{width:28px;height:28px;font-size:17px;}
+  .r-dock-youtube{font-size:13px;}
+  .r-dock-line{font-size:8px;}
+  .r-bottom-dock strong{font-size:11px;}
+  .r-floating-line{bottom:calc(86px + env(safe-area-inset-bottom));}
+  .r-footer{padding-bottom:34px;}
+}
