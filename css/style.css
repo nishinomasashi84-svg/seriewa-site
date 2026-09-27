@@ -534,7 +534,7 @@ a:focus-visible{outline:3px solid #2679ba;outline-offset:5px}
 .gallery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;}
 .gallery-card{margin:0;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
 .gallery-card>a{display:block;}
-.gallery-card img{width:100%;aspect-ratio:4/3;object-fit:cover;}
+.gallery-card img{display:block;width:100%;height:auto;object-fit:contain;}
 .gallery-card figcaption{padding:20px 22px 22px;}
 .gallery-card small{display:block;font-size:11px;font-weight:900;letter-spacing:.1em;color:var(--green);margin-bottom:7px;}
 .gallery-card strong{display:block;font-size:18px;margin-bottom:8px;}
