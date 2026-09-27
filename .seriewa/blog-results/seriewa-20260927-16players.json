@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "seriewa-20260927-16players",
+  "slug": "20260927-futsal-16players",
+  "article_path": "blog/20260927-futsal-16players/index.html",
+  "public_url": "https://seriew.com/blog/20260927-futsal-16players/",
+  "secure_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/v1790502741/oulfa89ezz5dch9hnoas.jpg",
+  "body_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1790502741/oulfa89ezz5dch9hnoas.jpg",
+  "social_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1790502741/oulfa89ezz5dch9hnoas.jpg",
+  "article_number": "46",
+  "display_date": "2026.09.27",
+  "status": "live_verified",
+  "verified_at": "2026-09-27T09:53:13.756Z"
+}
