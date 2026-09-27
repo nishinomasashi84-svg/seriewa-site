@@ -603,3 +603,51 @@ body{padding-bottom:92px;}
   .r-floating-line{bottom:calc(86px + env(safe-area-inset-bottom));}
   .r-footer{padding-bottom:34px;}
 }
+
+
+/* ---------- top scrollable quick menu ---------- */
+body{padding-bottom:0;}
+.r-bottom-dock{display:none!important;}
+.r-top-quicknav{
+  position:sticky;top:0;z-index:85;
+  background:rgba(255,255,255,.97);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 8px 24px rgba(24,51,43,.06);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.r-top-quicknav-scroll{
+  display:flex;align-items:stretch;justify-content:center;
+  max-width:760px;margin:0 auto;
+  overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  overscroll-behavior-x:contain;
+}
+.r-top-quicknav-scroll::-webkit-scrollbar{display:none;}
+.r-top-quicknav a{
+  flex:0 0 132px;min-width:132px;height:76px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;font-size:12px;font-weight:800;white-space:nowrap;
+}
+.r-top-quicknav a:hover{background:#f2f5f3;}
+.r-top-quicknav .r-dock-icon{
+  width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+  border-radius:8px;background:#e8efeb;color:var(--dark);
+  font-size:18px;font-weight:900;line-height:1;
+}
+.r-top-quicknav .r-dock-instagram{border-radius:9px;background:#f2ecef;}
+.r-top-quicknav .r-dock-youtube{background:#f7e9e7;color:#a83d31;font-size:14px;}
+.r-top-quicknav .r-dock-line{background:var(--green);color:#fff;font-size:8px;letter-spacing:-.02em;}
+.r-top-quicknav strong{font-size:12px;line-height:1;font-weight:800;}
+.r-floating-line{bottom:18px;}
+.r-footer{padding-bottom:110px;}
+
+@media(max-width:640px){
+  .r-top-quicknav-scroll{justify-content:flex-start;padding:0 10px;}
+  .r-top-quicknav a{flex-basis:104px;min-width:104px;height:70px;}
+  .r-top-quicknav .r-dock-icon{width:28px;height:28px;font-size:17px;}
+  .r-top-quicknav .r-dock-youtube{font-size:13px;}
+  .r-top-quicknav .r-dock-line{font-size:8px;}
+  .r-top-quicknav strong{font-size:11px;}
+  .r-floating-line{bottom:18px;}
+  .r-footer{padding-bottom:110px;}
+}
