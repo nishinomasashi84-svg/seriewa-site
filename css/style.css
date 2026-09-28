@@ -576,3 +576,17 @@ a:focus-visible{outline:3px solid #2679ba;outline-offset:5px}
 }
 /* === SERIE W PHOTO MARQUEE REPAIR END === */
 
+
+/* === SERIE W 20260928 VISUAL TUNE === */
+.r-photo-marquee{
+  background:#eef3ef !important;
+  border-bottom:1px solid rgba(13,76,61,.14);
+}
+.r-hero{
+  background-color:#f8d83f !important;
+  background-image:var(--futsal-watermark) !important;
+  background-repeat:repeat !important;
+  background-size:260px 260px !important;
+  background-position:center top !important;
+}
+/* === /SERIE W 20260928 VISUAL TUNE === */
