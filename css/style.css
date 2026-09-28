@@ -590,3 +590,51 @@ a:focus-visible{outline:3px solid #2679ba;outline-offset:5px}
   background-position:center top !important;
 }
 /* === /SERIE W 20260928 VISUAL TUNE === */
+
+/* === QUICK NAV MOBILE FIX 20260928 === */
+.r-top-quicknav{
+  width:100%;
+  overflow:hidden;
+  background:#fff;
+  border-bottom:1px solid rgba(13,76,61,.12);
+}
+.r-top-quicknav-scroll{
+  display:flex !important;
+  flex-flow:row nowrap !important;
+  align-items:center;
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  padding:0 12px;
+  box-sizing:border-box;
+}
+.r-top-quicknav-scroll::-webkit-scrollbar{display:none;}
+.r-top-quicknav-scroll a{
+  display:flex !important;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  flex:1 1 0;
+  min-width:0;
+  white-space:nowrap;
+  text-decoration:none;
+  font-size:clamp(11px,3.25vw,15px);
+  line-height:1;
+  padding:12px 4px;
+}
+.r-top-quicknav-scroll strong{
+  font-size:inherit;
+  white-space:nowrap;
+}
+.r-top-quicknav .r-dock-icon{
+  flex:none;
+  font-size:.9em;
+}
+.r-top-quicknav .r-dock-line{display:none;}
+@media(max-width:430px){
+  .r-top-quicknav-scroll{padding:0 6px;}
+  .r-top-quicknav-scroll a{gap:2px;padding:11px 2px;font-size:11px;}
+}
+/* === /QUICK NAV MOBILE FIX 20260928 === */
