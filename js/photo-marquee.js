@@ -9,7 +9,7 @@
   let startX = 0;
   let startScroll = 0;
   let lastTime = performance.now();
-  const speed = 34; // px/sec
+  const speed = 16; // px/sec - slow automatic flow
 
   const groupWidth = () => {
     const gap = parseFloat(getComputedStyle(track).gap || '0');
