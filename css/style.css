@@ -638,3 +638,47 @@ a:focus-visible{outline:3px solid #2679ba;outline-offset:5px}
   .r-top-quicknav-scroll a{gap:2px;padding:11px 2px;font-size:11px;}
 }
 /* === /QUICK NAV MOBILE FIX 20260928 === */
+
+/* === QUICK NAV DEFINITIVE MOBILE FIX 20260928 === */
+.r-top-quicknav{
+  overflow:hidden !important;
+}
+.r-top-quicknav-scroll{
+  display:flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  justify-content:flex-start !important;
+  width:100% !important;
+  max-width:100% !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  white-space:nowrap !important;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.r-top-quicknav-scroll::-webkit-scrollbar{display:none;}
+.r-top-quicknav-scroll > a{
+  display:inline-flex !important;
+  flex:0 0 auto !important;
+  width:auto !important;
+  min-width:max-content !important;
+  white-space:nowrap !important;
+  padding:11px 10px !important;
+  font-size:14px !important;
+  line-height:1 !important;
+}
+.r-top-quicknav-scroll > a strong,
+.r-top-quicknav-scroll > a span{
+  display:inline !important;
+  white-space:nowrap !important;
+}
+@media(max-width:640px){
+  .r-top-quicknav-scroll{padding:0 4px !important;}
+  .r-top-quicknav-scroll > a{
+    flex:0 0 auto !important;
+    min-width:max-content !important;
+    padding:11px 8px !important;
+    font-size:13px !important;
+  }
+}
+/* === /QUICK NAV DEFINITIVE MOBILE FIX 20260928 === */
