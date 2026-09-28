@@ -733,6 +733,12 @@ body{
   animation:seriewa-photo-marquee 30s linear infinite;
   will-change:transform;
 }
+.r-photo-marquee-group{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex:none;
+}
 .r-photo-marquee figure{
   flex:0 0 clamp(220px,28vw,380px);
   width:clamp(220px,28vw,380px);
@@ -756,12 +762,15 @@ body{
   from{transform:translateX(0);}
   to{transform:translateX(calc(-50% - 6px));}
 }
+  to{transform:translateX(calc(-50% - 6px));}
+}
 
 @media(max-width:640px){
   .r-header .r-logo b{font-size:18px;}
   .r-header .r-logo small{font-size:9px;max-width:150px;line-height:1.2;}
   .r-photo-marquee{padding:8px 0;}
   .r-photo-marquee-track{gap:8px;animation-duration:24s;}
+  .r-photo-marquee-group{gap:8px;}
   .r-photo-marquee figure{
     flex-basis:220px;
     width:220px;
