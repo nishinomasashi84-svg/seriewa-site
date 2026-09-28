@@ -9,6 +9,7 @@
   let startX = 0;
   let startScroll = 0;
   let lastTime = performance.now();
+  let autoPosition = marquee.scrollLeft;
   const speed = 16; // px/sec - slow automatic flow
 
   const groupWidth = () => {
@@ -21,6 +22,7 @@
     if (!width) return;
     if (marquee.scrollLeft >= width) marquee.scrollLeft -= width;
     if (marquee.scrollLeft < 0) marquee.scrollLeft += width;
+    autoPosition = marquee.scrollLeft;
   };
 
   const pauseAuto = (ms = 1400) => {
@@ -65,15 +67,23 @@
   marquee.addEventListener('touchstart', () => pauseAuto(2200), {passive:true});
   marquee.addEventListener('touchend', () => pauseAuto(1300), {passive:true});
   marquee.addEventListener('wheel', () => pauseAuto(1600), {passive:true});
-  marquee.addEventListener('scroll', normalize, {passive:true});
+  marquee.addEventListener('scroll', () => {
+    if (dragging || performance.now() < pausedUntil) {
+      normalize();
+      autoPosition = marquee.scrollLeft;
+    }
+  }, {passive:true});
 
   const tick = (now) => {
     const dt = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
 
     if (!dragging && now > pausedUntil && !document.hidden) {
-      marquee.scrollLeft += speed * dt;
-      normalize();
+      const width = groupWidth();
+      if (width) {
+        autoPosition = (autoPosition + speed * dt) % width;
+        marquee.scrollLeft = autoPosition;
+      }
     }
     requestAnimationFrame(tick);
   };
