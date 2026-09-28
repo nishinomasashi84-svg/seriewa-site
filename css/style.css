@@ -676,3 +676,115 @@ body{padding-bottom:0;}
   .r-top-quicknav .r-dock-line{font-size:6px;}
   .r-top-quicknav strong{font-size:9px;line-height:1.05;letter-spacing:-.03em;}
 }
+
+
+/* === SERIE W FUTSAL VISUAL ENHANCEMENT START === */
+:root{
+  --futsal-watermark:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='220' viewBox='0 0 300 220'%3E%3Cg fill='none' stroke='%2318332B' stroke-opacity='.055' stroke-width='2'%3E%3Ccircle cx='58' cy='58' r='31'/%3E%3Cpath d='M58 40l12 9-5 14H51l-5-14zM27 58l19-9M89 58l-19-9M39 84l12-21M77 84L65 63'/%3E%3Crect x='145' y='28' width='124' height='76' rx='3'/%3E%3Cpath d='M207 28v76M145 66h124M183 28v13h48V28M183 104V91h48v13'/%3E%3Cpath d='M18 170h264M150 142v56M121 170a29 29 0 0 0 58 0 29 29 0 0 0-58 0z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* subtle futsal watermark across the light sections */
+body{
+  background-color:var(--paper);
+  background-image:var(--futsal-watermark);
+  background-size:300px 220px;
+  background-attachment:fixed;
+}
+.r-topics,
+.r-manifesto,
+.r-flow,
+.r-social,
+.schedule-page-main,
+.blog-list,
+.blog-article,
+.gallery-main{
+  background-color:rgba(242,239,231,.94);
+  background-image:var(--futsal-watermark);
+  background-size:300px 220px;
+}
+
+/* clearer Japanese identity in the site header */
+.r-header .r-logo b{
+  font-size:20px;
+  letter-spacing:-.04em;
+}
+.r-header .r-logo small{
+  margin-top:3px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.02em;
+  opacity:.72;
+}
+
+/* continuously scrolling activity-photo banner */
+.r-photo-marquee{
+  overflow:hidden;
+  background:var(--dark);
+  border-bottom:1px solid rgba(255,255,255,.18);
+  padding:12px 0;
+}
+.r-photo-marquee-track{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:max-content;
+  padding:0 6px;
+  animation:seriewa-photo-marquee 30s linear infinite;
+  will-change:transform;
+}
+.r-photo-marquee figure{
+  flex:0 0 clamp(220px,28vw,380px);
+  width:clamp(220px,28vw,380px);
+  aspect-ratio:12/5;
+  margin:0;
+  overflow:hidden;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.22);
+  background:#10251f;
+}
+.r-photo-marquee img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transform:scale(1.01);
+}
+.r-photo-marquee:hover .r-photo-marquee-track{
+  animation-play-state:paused;
+}
+@keyframes seriewa-photo-marquee{
+  from{transform:translateX(0);}
+  to{transform:translateX(calc(-50% - 6px));}
+}
+
+@media(max-width:640px){
+  .r-header .r-logo b{font-size:18px;}
+  .r-header .r-logo small{font-size:9px;max-width:150px;line-height:1.2;}
+  .r-photo-marquee{padding:8px 0;}
+  .r-photo-marquee-track{gap:8px;animation-duration:24s;}
+  .r-photo-marquee figure{
+    flex-basis:220px;
+    width:220px;
+    aspect-ratio:11/5;
+    border-radius:8px;
+  }
+  body{
+    background-attachment:scroll;
+    background-size:250px 184px;
+  }
+  .r-topics,
+  .r-manifesto,
+  .r-flow,
+  .r-social,
+  .schedule-page-main,
+  .blog-list,
+  .blog-article,
+  .gallery-main{
+    background-size:250px 184px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .r-photo-marquee{overflow-x:auto;}
+  .r-photo-marquee-track{animation:none;}
+}
+/* === SERIE W FUTSAL VISUAL ENHANCEMENT END === */
