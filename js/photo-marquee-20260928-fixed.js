@@ -17,6 +17,22 @@
     return firstGroup.getBoundingClientRect().width + gap;
   };
 
+  const ensureCopies = () => {
+    const width = groupWidth();
+    if (!width) return;
+    while (track.scrollWidth - marquee.clientWidth < width && track.children.length < 8) {
+      const copy = firstGroup.cloneNode(true);
+      copy.setAttribute('aria-hidden', 'true');
+      copy.querySelectorAll('img').forEach((img) => {
+        img.alt = '';
+        img.loading = 'lazy';
+      });
+      track.appendChild(copy);
+    }
+  };
+  ensureCopies();
+  window.addEventListener('resize', ensureCopies);
+
   const normalize = () => {
     const width = groupWidth();
     if (!width) return;
