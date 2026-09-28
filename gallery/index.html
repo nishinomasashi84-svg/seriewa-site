@@ -54,35 +54,33 @@
       <p>これまでの活動から一部を掲載しています。写真を押すと、その日のブログ記事も読めます。</p>
     </div>
 
-    <div class="gallery-grid">
+    <div class="gallery-grid" id="blogPhotoGallery" aria-live="polite">
       <figure class="gallery-card">
         <a href="../blog/20260913-activity-report/">
           <img src="https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1789337768/xizf3ixuygeewhkbfzgu.jpg" alt="9月13日のSERIE W活動で体育館のフットサルコートに集まった参加者たち" loading="eager" fetchpriority="high" decoding="async">
-          <figcaption><small>REGULAR FUTSAL</small><strong>泉佐野での通常活動</strong><p>いつものメンバーも初参加も、一緒にボールを蹴るSERIE Wの日常。</p></figcaption>
+          <figcaption><small>ACTIVITY BLOG</small><strong>9/13 活動報告｜友達が友達を呼んでくれる場所に</strong><p>ブログの写真からSERIE Wの雰囲気を紹介します。</p></figcaption>
         </a>
       </figure>
-
       <figure class="gallery-card">
         <a href="../blog/pistachio-exchange/">
           <img src="https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1790030148/ca7cea2jd0zphkc5hgby.jpg" alt="ダイヤモンドフットサルパーク岸和田でピスタチオ交流戦に参加したセリエワーのメンバー" loading="lazy" decoding="async">
-          <figcaption><small>EXCHANGE MATCH</small><strong>ピスタチオ交流戦</strong><p>いつもの個サルとは少し違う、チームで参加した交流戦の一枚。</p></figcaption>
+          <figcaption><small>ACTIVITY BLOG</small><strong>ピスタチオ交流戦に参加しています</strong><p>ブログの写真からSERIE Wの雰囲気を紹介します。</p></figcaption>
         </a>
       </figure>
-
       <figure class="gallery-card">
         <a href="../blog/sakai-era/">
           <img src="https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1787431992/ch4ayxgxbwejvxjrejdd.jpg" alt="堺で開催していた時期のSERIE Wフットサル参加メンバーがゴール前でトロフィーを囲んで撮影した集合写真" loading="lazy" decoding="async">
-          <figcaption><small>HISTORY</small><strong>堺で活動していた頃</strong><p>泉佐野へ移る前、堺で続けていたSERIE Wの思い出。</p></figcaption>
+          <figcaption><small>ACTIVITY BLOG</small><strong>堺で活動していた頃</strong><p>ブログの写真からSERIE Wの雰囲気を紹介します。</p></figcaption>
         </a>
       </figure>
-
       <figure class="gallery-card">
         <a href="../blog/no-futsal-no-life/">
           <img src="https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1787565931/b1dtv2tcv5yorj6byoya.jpg" alt="NO FUTSAL NO LIFEとSERIE Wの文字、ヤギをモチーフにしたモノクロデザイン" loading="lazy" decoding="async">
-          <figcaption><small>SERIE W STYLE</small><strong>NO FUTSAL NO LIFE</strong><p>大人になっても、仲間とボールを蹴る時間を大切に。</p></figcaption>
+          <figcaption><small>ACTIVITY BLOG</small><strong>NO FUTSAL NO LIFE</strong><p>ブログの写真からSERIE Wの雰囲気を紹介します。</p></figcaption>
         </a>
       </figure>
     </div>
+    <p id="galleryLoadStatus" style="text-align:center;margin:22px 0 36px;color:#666;font-size:.92rem;">画像付きブログを読み込んでいます…</p>
 
     <div class="gallery-more">
       <div>
@@ -105,5 +103,120 @@
 <a class="r-floating-line" href="https://lin.ee/b8IfUOO" target="_blank" rel="noreferrer" aria-label="LINEで参加や空き状況をお問い合わせ"><span aria-hidden="true">LINE</span><strong>LINEでお問い合わせ</strong><b aria-hidden="true">↗</b></a>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-B78ZTV9596"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-B78ZTV9596');</script>
+<script>
+(() => {
+  const gallery = document.getElementById('blogPhotoGallery');
+  const status = document.getElementById('galleryLoadStatus');
+  if (!gallery) return;
+
+  const normalizeUrl = (url, base) => {
+    try { return new URL(url, base).href; } catch { return ''; }
+  };
+
+  const text = (node) => (node?.textContent || '').replace(/\s+/g, ' ').trim();
+
+  const isContentImage = (img) => {
+    const src = img.getAttribute('src') || '';
+    if (!src) return false;
+    return !/favicon|serie-w-crest|\/og\.png(?:$|\?)/i.test(src);
+  };
+
+  const makeCard = ({ href, image, alt, title, label, description }, index) => {
+    const fig = document.createElement('figure');
+    fig.className = 'gallery-card';
+    const a = document.createElement('a');
+    a.href = href;
+    const img = document.createElement('img');
+    img.src = image;
+    img.alt = alt || title || 'SERIE Wブログの写真';
+    img.loading = index === 0 ? 'eager' : 'lazy';
+    img.decoding = 'async';
+    if (index === 0) img.fetchPriority = 'high';
+
+    const cap = document.createElement('figcaption');
+    const small = document.createElement('small');
+    small.textContent = label || 'BLOG PHOTO';
+    const strong = document.createElement('strong');
+    strong.textContent = title || 'SERIE W BLOG';
+    const p = document.createElement('p');
+    p.textContent = description || '写真を押すとブログ記事を読めます。';
+
+    cap.append(small, strong, p);
+    a.append(img, cap);
+    fig.append(a);
+    return fig;
+  };
+
+  const load = async () => {
+    try {
+      const indexRes = await fetch('../blog/', { cache: 'no-store' });
+      if (!indexRes.ok) throw new Error('blog index');
+      const indexHtml = await indexRes.text();
+      const indexDoc = new DOMParser().parseFromString(indexHtml, 'text/html');
+
+      const articleLinks = [...indexDoc.querySelectorAll('a.blog-card[href]')]
+        .map(a => normalizeUrl(a.getAttribute('href'), indexRes.url))
+        .filter(Boolean);
+
+      const uniqueLinks = [...new Set(articleLinks)];
+      const batches = [];
+      for (let i = 0; i < uniqueLinks.length; i += 8) {
+        batches.push(uniqueLinks.slice(i, i + 8));
+      }
+
+      const cards = [];
+      for (const batch of batches) {
+        const found = await Promise.all(batch.map(async href => {
+          try {
+            const res = await fetch(href, { cache: 'no-store' });
+            if (!res.ok) return null;
+            const html = await res.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const imgs = [...doc.querySelectorAll('img')].filter(isContentImage);
+            if (!imgs.length) return null;
+
+            const img = imgs[0];
+            const h1 = text(doc.querySelector('h1'));
+            const metaTitle = doc.querySelector('meta[property="og:title"]')?.content || '';
+            const title = h1 || metaTitle.replace(/\s*[|｜].*$/, '') || text(doc.querySelector('title'));
+            const label =
+              text(doc.querySelector('.blog-category')) ||
+              text(doc.querySelector('.blog-post-category')) ||
+              text(doc.querySelector('article small')) ||
+              'BLOG PHOTO';
+            const description =
+              doc.querySelector('meta[name="description"]')?.content ||
+              '写真を押すとブログ記事を読めます。';
+
+            return {
+              href,
+              image: normalizeUrl(img.getAttribute('src'), res.url),
+              alt: img.getAttribute('alt') || '',
+              title,
+              label,
+              description
+            };
+          } catch {
+            return null;
+          }
+        }));
+        cards.push(...found.filter(Boolean));
+      }
+
+      if (!cards.length) {
+        if (status) status.textContent = '現在、表示できる画像付きブログはありません。';
+        return;
+      }
+
+      gallery.replaceChildren(...cards.map(makeCard));
+      if (status) status.textContent = '画像付きブログをすべて表示しています。';
+    } catch (e) {
+      if (status) status.textContent = '最新分の自動読み込みに失敗したため、登録済み写真を表示しています。';
+    }
+  };
+
+  load();
+})();
+</script>
 </body>
 </html>
