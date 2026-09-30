@@ -68,8 +68,7 @@
 
   rebuildSelectedPhotos();
   ensureCopies();
-    autoPosition = marquee.scrollLeft;
-  };
+  autoPosition = marquee.scrollLeft;
 
   const isContentImage = (img) => {
     const src = img.getAttribute('src') || '';
