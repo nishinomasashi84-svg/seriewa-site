@@ -213,5 +213,4 @@
   };
 
   requestAnimationFrame(tick);
-  loadBlogPhotos();
 })();
