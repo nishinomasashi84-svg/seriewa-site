@@ -138,6 +138,30 @@ const normalizedSections = sections.map((section, sectionIndex) => {
   return { heading, paragraphs, bullets };
 });
 
+const blogIndex = read("blog/index.html");
+
+function relatedArticlesFromIndex(limit = 3) {
+  const normalizedTags = tags.map((tag) => tag.toLowerCase());
+  const cards = [...blogIndex.matchAll(/<a class="blog-card" href="([^"]+\/)">([\s\S]*?)<\/a>/g)].map((match, order) => {
+    const href = match[1];
+    const html = match[2];
+    const title = plainCardText(html.match(/<h2>([\s\S]*?)<\/h2>/)?.[1] || "");
+    const description = plainCardText(html.match(/<p>([\s\S]*?)<\/p>/)?.[1] || "");
+    const cardTags = [...html.matchAll(/<span>#([^<]+)<\/span>/g)].map((item) => item[1].trim().toLowerCase());
+    const tagScore = cardTags.reduce((score, tag) => score + (normalizedTags.includes(tag) ? 5 : normalizedTags.some((current) => current.includes(tag) || tag.includes(current)) ? 2 : 0), 0);
+    const keywordScore = normalizedTags.reduce((score, tag) => score + (title.toLowerCase().includes(tag) || description.toLowerCase().includes(tag) ? 1 : 0), 0);
+    return { href, title, description, score: tagScore + keywordScore, order };
+  }).filter((item) => item.title && item.href !== `${slug}/`);
+
+  return cards
+    .sort((a, b) => b.score - a.score || a.order - b.order)
+    .slice(0, limit);
+}
+
+function plainCardText(value) {
+  return String(value).replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ").trim();
+}
+
 let relatedLink = "";
 if (payload.related_link) {
   const href = text(payload.related_link.href, "related_link.href", 100);
@@ -148,7 +172,14 @@ if (payload.related_link) {
   relatedLink = `<p>関連する内容は、<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>でも詳しく紹介しています。</p>`;
 }
 
-const blogIndex = read("blog/index.html");
+const autoRelatedArticles = relatedArticlesFromIndex(3);
+const autoRelatedHtml = autoRelatedArticles.length
+  ? `      <aside class="blog-related" aria-labelledby="related-title">
+        <small>RELATED POSTS</small>
+        <h2 id="related-title">あわせて読みたい記事</h2>
+        <div class="blog-related-grid">${autoRelatedArticles.map((item) => `<a href="../${escapeHtml(item.href)}"><strong>${escapeHtml(item.title)}</strong><span>記事を読む →</span></a>`).join("")}</div>
+      </aside>`
+  : "";
 const existingNumbers = [...blogIndex.matchAll(/blog-card-number">(\d+)</g)].map((match) => Number(match[1]));
 const articleNumber = String(Math.max(0, ...existingNumbers) + 1).padStart(2, "0");
 
@@ -232,6 +263,8 @@ ${articleImagesHtml}
       <p class="blog-lead">${escapeHtml(lead)}</p>
 
 ${sectionsHtml}
+
+${autoRelatedHtml}
 
       <div class="blog-cta">
         <small>${escapeHtml(ctaEyebrow)}</small>
