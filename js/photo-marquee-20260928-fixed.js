@@ -4,13 +4,15 @@
   const firstGroup = marquee?.querySelector('.r-photo-marquee-group');
   if (!marquee || !track || !firstGroup) return;
 
+  const MAX_PHOTOS = 24;
+  const ARTICLE_BATCH = 6;
   let pausedUntil = 0;
   let dragging = false;
   let startX = 0;
   let startScroll = 0;
   let lastTime = performance.now();
   let autoPosition = marquee.scrollLeft;
-  const speed = 16; // px/sec - slow automatic flow
+  const speed = 16;
 
   const groupWidth = () => {
     const gap = parseFloat(getComputedStyle(track).gap || '0');
@@ -30,6 +32,140 @@
       track.appendChild(copy);
     }
   };
+
+  const photoKey = (src) => {
+    try {
+      const url = new URL(src, location.href);
+      if (url.hostname === 'res.cloudinary.com') {
+        const versionMatch = url.pathname.match(/\/v\d+\/(.+)$/);
+        return versionMatch ? versionMatch[1] : url.pathname;
+      }
+      return url.href;
+    } catch {
+      return src;
+    }
+  };
+
+  const marqueeUrl = (src) => {
+    try {
+      const url = new URL(src, location.href);
+      if (url.hostname === 'res.cloudinary.com' && url.pathname.includes('/image/upload/')) {
+        const parts = url.pathname.split('/image/upload/');
+        const tail = parts[1];
+        const versionIndex = tail.search(/v\d+\//);
+        if (versionIndex >= 0) {
+          url.pathname = parts[0] + '/image/upload/f_auto,q_auto,c_fill,w_720,h_420/' + tail.slice(versionIndex);
+        }
+      }
+      return url.href;
+    } catch {
+      return src;
+    }
+  };
+
+  const makeFigure = ({ src, alt }, eager = false) => {
+    const figure = document.createElement('figure');
+    figure.style.cssText = 'flex:0 0 auto;width:min(78vw,320px);aspect-ratio:11/5;margin:0;overflow:hidden;border-radius:10px;';
+
+    const img = document.createElement('img');
+    img.src = marqueeUrl(src);
+    img.alt = alt || 'セリエワーのフットサル活動風景';
+    img.loading = eager ? 'eager' : 'lazy';
+    img.decoding = 'async';
+    img.style.cssText = 'display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;';
+    figure.appendChild(img);
+    return figure;
+  };
+
+  const currentPhotos = () => [...firstGroup.querySelectorAll('img[src]')].map((img) => ({
+    src: img.currentSrc || img.src,
+    alt: img.alt || 'セリエワーのフットサル活動風景',
+  }));
+
+  const rebuildGroups = (photos) => {
+    firstGroup.replaceChildren(...photos.map((photo, index) => makeFigure(photo, index < 2)));
+
+    [...track.querySelectorAll(':scope > .r-photo-marquee-group')].slice(1).forEach((group) => group.remove());
+
+    const copy = firstGroup.cloneNode(true);
+    copy.setAttribute('aria-hidden', 'true');
+    copy.querySelectorAll('img').forEach((img) => {
+      img.alt = '';
+      img.loading = 'lazy';
+    });
+    track.appendChild(copy);
+
+    ensureCopies();
+    autoPosition = marquee.scrollLeft;
+  };
+
+  const isContentImage = (img) => {
+    const src = img.getAttribute('src') || '';
+    if (!src) return false;
+    return !/favicon|serie-w-crest|\/og\.png(?:$|\?)/i.test(src);
+  };
+
+  const loadBlogPhotos = async () => {
+    try {
+      const indexRes = await fetch('blog/', { cache: 'no-store' });
+      if (!indexRes.ok) return;
+
+      const indexHtml = await indexRes.text();
+      const indexDoc = new DOMParser().parseFromString(indexHtml, 'text/html');
+      const articleLinks = [...indexDoc.querySelectorAll('a.blog-card[href]')]
+        .map((a) => {
+          try { return new URL(a.getAttribute('href'), indexRes.url).href; }
+          catch { return ''; }
+        })
+        .filter(Boolean);
+
+      const uniqueLinks = [...new Set(articleLinks)];
+      const photos = currentPhotos();
+      const seen = new Set(photos.map((photo) => photoKey(photo.src)));
+
+      for (let i = 0; i < uniqueLinks.length && photos.length < MAX_PHOTOS; i += ARTICLE_BATCH) {
+        const batch = uniqueLinks.slice(i, i + ARTICLE_BATCH);
+        const found = await Promise.all(batch.map(async (href) => {
+          try {
+            const res = await fetch(href, { cache: 'no-store' });
+            if (!res.ok) return [];
+            const html = await res.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const imgs = [...doc.querySelectorAll('.blog-media img, article img')].filter(isContentImage);
+            return imgs.slice(0, 3).map((img) => {
+              const raw = img.getAttribute('src') || '';
+              let src = raw;
+              try { src = new URL(raw, res.url).href; } catch {}
+              return {
+                src,
+                alt: img.getAttribute('alt') || 'SERIE Wブログの活動写真',
+              };
+            });
+          } catch {
+            return [];
+          }
+        }));
+
+        for (const articlePhotos of found) {
+          for (const photo of articlePhotos) {
+            const key = photoKey(photo.src);
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            photos.push(photo);
+            if (photos.length >= MAX_PHOTOS) break;
+          }
+          if (photos.length >= MAX_PHOTOS) break;
+        }
+      }
+
+      if (photos.length > firstGroup.querySelectorAll('img').length) {
+        rebuildGroups(photos);
+      }
+    } catch {
+      // 登録済み写真だけで表示を継続する
+    }
+  };
+
   ensureCopies();
   window.addEventListener('resize', ensureCopies);
 
@@ -80,15 +216,15 @@
     if (dragging && e.pointerType !== 'touch') endDrag(e);
   });
 
-  marquee.addEventListener('touchstart', () => pauseAuto(2200), {passive:true});
-  marquee.addEventListener('touchend', () => pauseAuto(1300), {passive:true});
-  marquee.addEventListener('wheel', () => pauseAuto(1600), {passive:true});
+  marquee.addEventListener('touchstart', () => pauseAuto(2200), { passive: true });
+  marquee.addEventListener('touchend', () => pauseAuto(1300), { passive: true });
+  marquee.addEventListener('wheel', () => pauseAuto(1600), { passive: true });
   marquee.addEventListener('scroll', () => {
     if (dragging || performance.now() < pausedUntil) {
       normalize();
       autoPosition = marquee.scrollLeft;
     }
-  }, {passive:true});
+  }, { passive: true });
 
   const tick = (now) => {
     const dt = Math.min((now - lastTime) / 1000, 0.05);
@@ -105,4 +241,5 @@
   };
 
   requestAnimationFrame(tick);
+  loadBlogPhotos();
 })();
