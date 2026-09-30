@@ -4,8 +4,15 @@
   const firstGroup = marquee?.querySelector('.r-photo-marquee-group');
   if (!marquee || !track || !firstGroup) return;
 
-  const MAX_PHOTOS = 24;
-  const ARTICLE_BATCH = 6;
+  // トップページは自動収集せず、SERIE Wらしさが伝わる写真だけを固定採用する。
+  const SELECTED_PHOTOS = [
+    { src: 'https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_fill,w_720,h_420/v1790502741/oulfa89ezz5dch9hnoas.jpg', alt: 'SERIE Wのフットサル活動風景' },
+    { src: 'https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_fill,w_720,h_420/v1789337768/xizf3ixuygeewhkbfzgu.jpg', alt: 'SERIE Wのフットサル活動風景' },
+    { src: 'https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_fill,w_720,h_420/v1787486908/hfae4bz6fz7rrh2lvj3y.jpg', alt: '屋内で楽しむSERIE Wのフットサル' },
+    { src: 'https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_fill,w_720,h_420/v1790030148/ca7cea2jd0zphkc5hgby.jpg', alt: 'フットサル交流戦の活動風景' },
+    { src: 'https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_fill,w_720,h_420/v1787323131/cn95acvuaegmjmywg0fa.jpg', alt: 'SERIE Wのフットサル大会参加風景' },
+    { src: 'https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_fill,w_720,h_420/v1787431992/ch4ayxgxbwejvxjrejdd.jpg', alt: 'SERIE Wの仲間たち' }
+  ];
   let pausedUntil = 0;
   let dragging = false;
   let startX = 0;
@@ -17,6 +24,32 @@
   const groupWidth = () => {
     const gap = parseFloat(getComputedStyle(track).gap || '0');
     return firstGroup.getBoundingClientRect().width + gap;
+  };
+
+  const makeFigure = ({ src, alt }, eager = false) => {
+    const figure = document.createElement('figure');
+    figure.style.cssText = 'flex:0 0 auto;width:min(78vw,320px);aspect-ratio:11/5;margin:0;overflow:hidden;border-radius:10px;';
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = alt;
+    img.loading = eager ? 'eager' : 'lazy';
+    img.decoding = 'async';
+    img.style.cssText = 'display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;';
+    figure.appendChild(img);
+    return figure;
+  };
+
+  const rebuildSelectedPhotos = () => {
+    firstGroup.replaceChildren(...SELECTED_PHOTOS.map((photo, index) => makeFigure(photo, index < 2)));
+    [...track.querySelectorAll(':scope > .r-photo-marquee-group')].slice(1).forEach((group) => group.remove());
+    const copy = firstGroup.cloneNode(true);
+    copy.setAttribute('aria-hidden', 'true');
+    copy.querySelectorAll('img').forEach((img) => {
+      img.alt = '';
+      img.loading = 'lazy';
+    });
+    track.appendChild(copy);
+    autoPosition = marquee.scrollLeft;
   };
 
   const ensureCopies = () => {
@@ -33,69 +66,8 @@
     }
   };
 
-  const photoKey = (src) => {
-    try {
-      const url = new URL(src, location.href);
-      if (url.hostname === 'res.cloudinary.com') {
-        const versionMatch = url.pathname.match(/\/v\d+\/(.+)$/);
-        return versionMatch ? versionMatch[1] : url.pathname;
-      }
-      return url.href;
-    } catch {
-      return src;
-    }
-  };
-
-  const marqueeUrl = (src) => {
-    try {
-      const url = new URL(src, location.href);
-      if (url.hostname === 'res.cloudinary.com' && url.pathname.includes('/image/upload/')) {
-        const parts = url.pathname.split('/image/upload/');
-        const tail = parts[1];
-        const versionIndex = tail.search(/v\d+\//);
-        if (versionIndex >= 0) {
-          url.pathname = parts[0] + '/image/upload/f_auto,q_auto,c_fill,w_720,h_420/' + tail.slice(versionIndex);
-        }
-      }
-      return url.href;
-    } catch {
-      return src;
-    }
-  };
-
-  const makeFigure = ({ src, alt }, eager = false) => {
-    const figure = document.createElement('figure');
-    figure.style.cssText = 'flex:0 0 auto;width:min(78vw,320px);aspect-ratio:11/5;margin:0;overflow:hidden;border-radius:10px;';
-
-    const img = document.createElement('img');
-    img.src = marqueeUrl(src);
-    img.alt = alt || 'セリエワーのフットサル活動風景';
-    img.loading = eager ? 'eager' : 'lazy';
-    img.decoding = 'async';
-    img.style.cssText = 'display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;';
-    figure.appendChild(img);
-    return figure;
-  };
-
-  const currentPhotos = () => [...firstGroup.querySelectorAll('img[src]')].map((img) => ({
-    src: img.currentSrc || img.src,
-    alt: img.alt || 'セリエワーのフットサル活動風景',
-  }));
-
-  const rebuildGroups = (photos) => {
-    firstGroup.replaceChildren(...photos.map((photo, index) => makeFigure(photo, index < 2)));
-
-    [...track.querySelectorAll(':scope > .r-photo-marquee-group')].slice(1).forEach((group) => group.remove());
-
-    const copy = firstGroup.cloneNode(true);
-    copy.setAttribute('aria-hidden', 'true');
-    copy.querySelectorAll('img').forEach((img) => {
-      img.alt = '';
-      img.loading = 'lazy';
-    });
-    track.appendChild(copy);
-
-    ensureCopies();
+  rebuildSelectedPhotos();
+  ensureCopies();
     autoPosition = marquee.scrollLeft;
   };
 
