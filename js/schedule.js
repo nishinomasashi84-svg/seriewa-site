@@ -5,8 +5,10 @@
     { date: "2026-08-30", startTime: "17:00", endTime: "19:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" },
     { date: "2026-09-13", startTime: "17:00", endTime: "19:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" },
     { date: "2026-09-27", startTime: "15:00", endTime: "17:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" },
-    { date: "2026-10-18", startTime: "17:00", endTime: "19:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" },
-    { date: "2026-10-31", startTime: "19:00", endTime: "21:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000" }
+    { date: "2026-10-18", startTime: "17:00", endTime: "19:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000", address: { streetAddress: "南中樫井428-1", addressLocality: "泉佐野市", addressRegion: "大阪府", postalCode: "598-0035", addressCountry: "JP" } },
+    { date: "2026-10-31", startTime: "19:00", endTime: "21:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000", address: { streetAddress: "南中樫井428-1", addressLocality: "泉佐野市", addressRegion: "大阪府", postalCode: "598-0035", addressCountry: "JP" } },
+    { date: "2026-11-15", startTime: "15:00", endTime: "17:00", venue: "田尻", fee: "1名 ¥1,000" },
+    { date: "2026-11-21", startTime: "19:00", endTime: "21:00", venue: "田尻", fee: "1名 ¥1,000" }
   ];
 
   var weekdays = ["日", "月", "火", "水", "木", "金", "土"];
@@ -161,17 +163,13 @@
           "image": [
             "https://seriew.com/og.png"
           ],
-          "location": {
+          "location": session.address ? {
             "@type": "Place",
             "name": session.venue,
-            "address": {
-              "@type": "PostalAddress",
-              "streetAddress": "南中樫井428-1",
-              "addressLocality": "泉佐野市",
-              "addressRegion": "大阪府",
-              "postalCode": "598-0035",
-              "addressCountry": "JP"
-            }
+            "address": Object.assign({ "@type": "PostalAddress" }, session.address)
+          } : {
+            "@type": "Place",
+            "name": session.venue
           },
           "offers": {
             "@type": "Offer",
