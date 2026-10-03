@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "katsugyo-20261003",
+  "slug": "katsugyo-sushi-izumisano",
+  "article_path": "blog/katsugyo-sushi-izumisano/index.html",
+  "public_url": "https://seriew.com/blog/katsugyo-sushi-izumisano/",
+  "secure_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/v1791020583/x66w4xzggn7jnk0lujoy.jpg",
+  "body_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1791020583/x66w4xzggn7jnk0lujoy.jpg",
+  "social_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1791020583/x66w4xzggn7jnk0lujoy.jpg",
+  "article_number": "55",
+  "display_date": "2026.10.03",
+  "status": "live_verified",
+  "verified_at": "2026-10-03T09:43:57.052Z"
+}
