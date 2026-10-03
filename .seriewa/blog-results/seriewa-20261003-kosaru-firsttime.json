@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "seriewa-20261003-kosaru-firsttime",
+  "slug": "kosaru-firsttime-atmosphere",
+  "article_path": "blog/kosaru-firsttime-atmosphere/index.html",
+  "public_url": "https://seriew.com/blog/kosaru-firsttime-atmosphere/",
+  "secure_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/v1791015263/sxd802kcc3sfihg92jxx.jpg",
+  "body_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_auto,q_auto,c_limit,w_1200/v1791015263/sxd802kcc3sfihg92jxx.jpg",
+  "social_image_url": "https://res.cloudinary.com/kqvfp4bz/image/upload/f_jpg,q_auto,c_fill,g_auto,w_1200,h_630/v1791015263/sxd802kcc3sfihg92jxx.jpg",
+  "article_number": "54",
+  "display_date": "2026.10.03",
+  "status": "live_verified",
+  "verified_at": "2026-10-03T08:15:14.125Z"
+}
