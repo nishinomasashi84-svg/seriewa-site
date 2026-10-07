@@ -3,6 +3,7 @@
   <url><loc>https://seriew.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://seriew.com/schedule/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://seriew.com/blog/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://seriew.com/blog/vinicius-double-theory/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://seriew.com/blog/sennan-hannan-izumisano-futsal-guide/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://seriew.com/blog/kosal-solo-first-visit-flow/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://seriew.com/blog/beginner-futsal-warmup-injury-prevention/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
