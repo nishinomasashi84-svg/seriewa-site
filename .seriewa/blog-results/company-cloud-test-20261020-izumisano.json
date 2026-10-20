@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "company-cloud-test-20261020-izumisano",
+  "slug": "izumisano-health-plan-futsal-habit",
+  "article_path": "blog/izumisano-health-plan-futsal-habit/index.html",
+  "public_url": "https://seriew.com/blog/izumisano-health-plan-futsal-habit/",
+  "secure_url": "",
+  "body_image_url": "",
+  "social_image_url": "https://seriew.com/og.png",
+  "article_number": "76",
+  "display_date": "2026.10.20",
+  "status": "live_verified",
+  "verified_at": "2026-10-20T12:51:31.201Z"
+}
