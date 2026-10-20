@@ -221,7 +221,7 @@ const articleHtml = `<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>${escapeHtml(pageTitle)}</title>
 <meta name="description" content="${escapeHtml(metaDescription)}">
 <link rel="canonical" href="https://seriew.com/blog/${slug}">
