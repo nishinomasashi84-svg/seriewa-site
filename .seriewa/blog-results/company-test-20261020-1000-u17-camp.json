@@ -1,0 +1,14 @@
+{
+  "operation": "publish_article",
+  "request_id": "company-test-20261020-1000-u17-camp",
+  "slug": "u17-camp-beginner-preparation-order",
+  "article_path": "blog/u17-camp-beginner-preparation-order/index.html",
+  "public_url": "https://seriew.com/blog/u17-camp-beginner-preparation-order/",
+  "secure_url": "",
+  "body_image_url": "",
+  "social_image_url": "https://seriew.com/og.png",
+  "article_number": "75",
+  "display_date": "2026.10.20",
+  "status": "live_verified",
+  "verified_at": "2026-10-20T12:28:21.733Z"
+}
