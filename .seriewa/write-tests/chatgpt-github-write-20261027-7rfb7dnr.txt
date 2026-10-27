@@ -1,0 +1,5 @@
+SERIE W GitHub write-permission test
+Purpose: verify ChatGPT GitHub connector can create one isolated file on main.
+Date: 2026-10-27 (Asia/Tokyo)
+Path: .seriewa/write-tests/chatgpt-github-write-20261027-7rfb7dnr.txt
+No site, article, workflow, or automation content is modified by this file.
