@@ -9,8 +9,8 @@
     { date: "2026-10-31", startTime: "19:00", endTime: "21:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000", address: { streetAddress: "南中樫井428-1", addressLocality: "泉佐野市", addressRegion: "大阪府", postalCode: "598-0035", addressCountry: "JP" } },
     { date: "2026-11-15", startTime: "15:00", endTime: "17:00", venue: "田尻", fee: "1名 ¥1,000" },
     { date: "2026-11-21", startTime: "19:00", endTime: "21:00", venue: "田尻", fee: "1名 ¥1,000" },
-    { date: "2026-12-13", startTime: "15:00", endTime: "17:00", fee: "1名 ¥1,000" },
-    { date: "2026-12-19", startTime: "19:00", endTime: "21:00", fee: "1名 ¥1,000" }
+    { date: "2026-12-13", startTime: "15:00", endTime: "17:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000", address: { streetAddress: "南中樫井428-1", addressLocality: "泉佐野市", addressRegion: "大阪府", postalCode: "598-0035", addressCountry: "JP" } },
+    { date: "2026-12-19", startTime: "19:00", endTime: "21:00", venue: "泉佐野市オークアリーナ", fee: "1名 ¥1,000", address: { streetAddress: "南中樫井428-1", addressLocality: "泉佐野市", addressRegion: "大阪府", postalCode: "598-0035", addressCountry: "JP" } }
   ];
 
   var weekdays = ["日", "月", "火", "水", "木", "金", "土"];
@@ -96,7 +96,7 @@
       var rows = [
         ["DATE", next.date.replaceAll("-", ".") + "（" + d.weekday + "）"],
         ["TIME", next.startTime + "–" + next.endTime],
-        ["VENUE", next.venue || "LINEでご確認ください"],
+        ["VENUE", next.venue],
         ["FEE", next.fee]
       ];
       rows.forEach(function (r) {
@@ -136,7 +136,7 @@
         "<div class=\"schedule-event-date\"><small>" + d.year + "</small><strong>" + d.month + "/" + d.day + "</strong><span>（" + d.weekday + "）</span></div>" +
         "<dl>" +
           "<div><dt>時間</dt><dd>" + session.startTime + "–" + session.endTime + "</dd></div>" +
-          "<div><dt>会場</dt><dd>" + (session.venue || "LINEでご確認ください") + "</dd></div>" +
+          "<div><dt>会場</dt><dd>" + session.venue + "</dd></div>" +
           "<div><dt>参加費</dt><dd>" + session.fee + "</dd></div>" +
         "</dl>" +
         "<a href=\"https://lin.ee/b8IfUOO\" target=\"_blank\" rel=\"noreferrer\">この日程に参加する <span>↗</span></a>";
@@ -169,10 +169,10 @@
             "@type": "Place",
             "name": session.venue,
             "address": Object.assign({ "@type": "PostalAddress" }, session.address)
-          } : session.venue ? {
+          } : {
             "@type": "Place",
             "name": session.venue
-          } : undefined,
+          },
           "offers": {
             "@type": "Offer",
             "url": "https://seriew.com/schedule/",
